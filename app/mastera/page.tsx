@@ -1,7 +1,11 @@
 import MasterCircle from "@/components/MasterCircle";
-import { masters } from "@/lib/data";
+import { getCatalogMasters } from "@/lib/dikidi";
 
-export default function MasteraPage() {
+export const dynamic = "force-dynamic";
+
+export default async function MasteraPage() {
+  const { masters, source } = await getCatalogMasters();
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-20 pt-10">
       <h1 className="mb-14 text-4xl font-extralight tracking-wide text-white md:text-5xl">
@@ -17,6 +21,11 @@ export default function MasteraPage() {
           />
         ))}
       </div>
+      {source === "static" ? (
+        <p className="mt-10 text-xs font-light text-white/40">
+          Показаны локальные данные (API недоступен)
+        </p>
+      ) : null}
     </div>
   );
 }

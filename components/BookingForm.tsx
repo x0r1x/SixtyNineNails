@@ -1,127 +1,631 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  formatPrice,
-  masters,
-  serviceCategories,
-  services,
-  timeSlotsByDay,
-  weekDays,
-} from "@/lib/data";
-import type { Booking } from "@/lib/bookings";
+import { formatPrice, type Master, type Service } from "@/lib/data";
 
-type Props = {
-  initialBookings: Booking[];
-};
+type Step = "slot" | "contacts" | "sms" | "done";
 
-function nextDateForDay(dayLabel: string): string {
-  const map: Record<string, number> = {
-    ПН: 1,
-    ВТ: 2,
-    СР: 3,
-    ЧТ: 4,
-    ПТ: 5,
-    СБ: 6,
-    ВС: 0,
-  };
-  const target = map[dayLabel];
-  const d = new Date();
-  const current = d.getDay();
-  let delta = (target - current + 7) % 7;
-  if (delta === 0) delta = 7;
-  d.setDate(d.getDate() + delta);
-  return d.toISOString().slice(0, 10);
+const WEEKDAY_HEADERS = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"] as const;
+const MONTH_NAMES = [
+  "Январь",
+  "Февраль",
+  "Март",
+  "Апрель",
+  "Май",
+  "Июнь",
+  "Июль",
+  "Август",
+  "Сентябрь",
+  "Октябрь",
+  "Ноябрь",
+  "Декабрь",
+] as const;
+
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, "0");
+  const day = d.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-export default function BookingForm({ initialBookings }: Props) {
+function parseIso(iso: string): Date {
+  return new Date(iso + "T12:00:00");
+}
+
+function formatSelectedDate(iso: string): string {
+  const d = parseIso(iso);
+  return d.toLocaleDateString("ru-RU", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+  });
+}
+
+function timeLabel(full: string): string {
+  const m = full.match(/\d{2}:\d{2}/);
+  return m ? m[0] : full;
+}
+
+/** Monday-first month grid cells (null = padding). */
+function buildMonthGrid(year: number, month: number): (string | null)[] {
+  const first = new Date(year, month, 1);
+  // JS getDay: 0=Sun … convert to Mon=0
+  let startPad = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (string | null)[] = [];
+  for (let i = 0; i < startPad; i++) cells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) {
+    cells.push(toIsoDate(new Date(year, month, day)));
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+type MonthCalendarProps = {
+  year: number;
+  month: number;
+  available: Set<string>;
+  selected: string;
+  onSelect: (iso: string) => void;
+  onPrev: () => void;
+  onNext: () => void;
+  loading?: boolean;
+};
+
+function MonthCalendar({
+  year,
+  month,
+  available,
+  selected,
+  onSelect,
+  onPrev,
+  onNext,
+  loading,
+}: MonthCalendarProps) {
+  const cells = useMemo(() => buildMonthGrid(year, month), [year, month]);
+  const todayIso = toIsoDate(new Date());
+
+  return (
+    <div className="w-full max-w-sm mx-auto">
+      <div className="mb-4 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onPrev}
+          className="px-3 py-1 text-sm font-light text-white/70 transition hover:text-white"
+          aria-label="Предыдущий месяц"
+        >
+          ←
+        </button>
+        <p className="text-sm font-light tracking-wide text-white">
+          {MONTH_NAMES[month]} {year}
+        </p>
+        <button
+          type="button"
+          onClick={onNext}
+          className="px-3 py-1 text-sm font-light text-white/70 transition hover:text-white"
+          aria-label="Следующий месяц"
+        >
+          →
+        </button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {WEEKDAY_HEADERS.map((h) => (
+          <div
+            key={h}
+            className="pb-2 text-[10px] font-light tracking-wider text-white/40"
+          >
+            {h}
+          </div>
+        ))}
+        {cells.map((iso, idx) => {
+          if (!iso) {
+            return <div key={"e" + idx} className="aspect-square" />;
+          }
+          const dayNum = parseIso(iso).getDate();
+          const isAvailable = available.has(iso);
+          const isSelected = selected === iso;
+          const isPast = iso < todayIso;
+          const canPick = isAvailable && !isPast;
+          return (
+            <button
+              key={iso}
+              type="button"
+              disabled={!canPick}
+              onClick={() => canPick && onSelect(iso)}
+              className={
+                "aspect-square rounded-sm text-xs font-light transition " +
+                (isSelected
+                  ? "bg-burgundy text-white"
+                  : canPick
+                    ? "border border-white/50 text-white hover:border-burgundy"
+                    : "text-white/25")
+              }
+              title={
+                canPick
+                  ? "Есть свободные слоты"
+                  : isAvailable
+                    ? "Дата недоступна"
+                    : "Нет записи"
+              }
+            >
+              {dayNum}
+              {canPick && !isSelected ? (
+                <span className="mx-auto mt-0.5 block h-0.5 w-0.5 rounded-full bg-burgundy" />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      {loading ? (
+        <p className="mt-3 text-center text-xs font-light text-white/40">
+          Обновляем даты…
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export default function BookingForm() {
   const searchParams = useSearchParams();
   const masterFromQuery = searchParams.get("master") || "";
 
-  const [serviceId, setServiceId] = useState(services[0]?.id || "");
-  const [masterId, setMasterId] = useState(
-    masters.some((m) => m.id === masterFromQuery)
-      ? masterFromQuery
-      : masters[0]?.id || ""
-  );
+  const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [masters, setMasters] = useState<Master[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  const [serviceId, setServiceId] = useState("");
+  const [masterId, setMasterId] = useState("");
+  const [datesTrue, setDatesTrue] = useState<string[]>([]);
   const [date, setDate] = useState("");
-  const [day, setDay] = useState<string>("ВТ");
-  const [time, setTime] = useState("14:00");
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  const [times, setTimes] = useState<string[]>([]);
+  const [time, setTime] = useState("");
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  const now = new Date();
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth());
+
+  const [step, setStep] = useState<Step>("slot");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [comment, setComment] = useState("");
+  const [smsCode, setSmsCode] = useState("");
+  const [recordId, setRecordId] = useState<number | null>(null);
+
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">(
     "idle"
   );
   const [message, setMessage] = useState("");
 
+  const availableSet = useMemo(() => new Set(datesTrue), [datesTrue]);
+
   useEffect(() => {
-    if (masterFromQuery && masters.some((m) => m.id === masterFromQuery)) {
-      setMasterId(masterFromQuery);
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const [svcRes, mstRes] = await Promise.all([
+          fetch("/api/services"),
+          fetch("/api/masters"),
+        ]);
+        const svcJson = await svcRes.json();
+        const mstJson = await mstRes.json();
+        if (cancelled) return;
+        const svcList = (svcJson.services || []) as Service[];
+        const mstList = (mstJson.masters || []) as Master[];
+        setServices(svcList);
+        setCategories(
+          (svcJson.categories as string[]) ||
+            [...new Set(svcList.map((s) => s.category))]
+        );
+        setMasters(mstList);
+        if (svcList[0]) setServiceId(svcList[0].id);
+        const preferred =
+          masterFromQuery && mstList.some((m) => m.id === masterFromQuery)
+            ? masterFromQuery
+            : mstList[0]?.id || "";
+        setMasterId(preferred);
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+          setMessage("Не удалось загрузить каталог");
+        }
+      } finally {
+        if (!cancelled) setCatalogLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [masterFromQuery]);
 
   useEffect(() => {
-    if (!date) setDate(nextDateForDay(day));
-  }, [day, date]);
+    if (!serviceId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          "/api/masters?serviceId=" + encodeURIComponent(serviceId)
+        );
+        const data = await res.json();
+        if (cancelled) return;
+        const list = (data.masters || []) as Master[];
+        if (list.length) {
+          setMasters(list);
+          setMasterId((prev) =>
+            list.some((m) => m.id === prev) ? prev : list[0].id
+          );
+        }
+      } catch {
+        /* keep previous */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [serviceId]);
 
-  const busySet = useMemo(() => {
-    const set = new Set<string>();
-    for (const b of bookings) {
-      if (b.masterId === masterId) set.add(b.day + "|" + b.time);
-    }
-    return set;
-  }, [bookings, masterId]);
+  const loadSlots = useCallback(
+    async (sid: string, mid: string, d?: string) => {
+      if (!sid || !mid) return;
+      setSlotsLoading(true);
+      setMessage("");
+      try {
+        const q = new URLSearchParams({ serviceId: sid, masterId: mid });
+        if (d) q.set("date", d);
+        const res = await fetch("/api/slots?" + q.toString());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Ошибка слотов");
+        const dates = (data.datesTrue || []) as string[];
+        setDatesTrue(dates);
 
-  async function onSubmit(e: React.FormEvent) {
+        // Align calendar to first available / near date when resetting
+        const near = (data.dateNear as string) || dates[0];
+        if (near && !d) {
+          const nd = parseIso(near);
+          setViewYear(nd.getFullYear());
+          setViewMonth(nd.getMonth());
+        }
+
+        let nextDate = "";
+        if (d && dates.includes(d)) {
+          nextDate = d;
+        } else if (d) {
+          // Picked a day with no availability in this response
+          nextDate = d;
+        } else {
+          nextDate = "";
+        }
+        setDate(nextDate);
+
+        const slotTimes = (data.times || []) as string[];
+        // Only show times if they match the selected date
+        const forDay = nextDate
+          ? slotTimes.filter((t) => t.startsWith(nextDate))
+          : [];
+        setTimes(forDay);
+        setTime((prev) =>
+          forDay.includes(prev) ? prev : forDay[0] || ""
+        );
+      } catch (err) {
+        setDatesTrue([]);
+        setTimes([]);
+        setTime("");
+        setStatus("error");
+        setMessage(err instanceof Error ? err.message : "Ошибка слотов");
+      } finally {
+        setSlotsLoading(false);
+      }
+    },
+    []
+  );
+
+  // After service+master chosen — fetch availability (dates_true)
+  useEffect(() => {
+    if (!serviceId || !masterId || step !== "slot") return;
+    setDate("");
+    setTime("");
+    setTimes([]);
+    void loadSlots(serviceId, masterId);
+  }, [serviceId, masterId, loadSlots, step]);
+
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === serviceId),
+    [services, serviceId]
+  );
+
+  function shiftMonth(delta: number) {
+    const d = new Date(viewYear, viewMonth + delta, 1);
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+  }
+
+  async function onPickDate(iso: string) {
+    setDate(iso);
+    setTime("");
+    setTimes([]);
+    await loadSlots(serviceId, masterId, iso);
+  }
+
+  async function goToContacts(e: React.FormEvent) {
     e.preventDefault();
-    if (!serviceId || !masterId || !date || !day || !time) {
+    if (!serviceId || !masterId || !date || !time) {
       setStatus("error");
-      setMessage("Заполните все поля");
+      setMessage("Выберите услугу, мастера, дату и время");
       return;
     }
-    if (busySet.has(day + "|" + time)) {
+    setStep("contacts");
+    setStatus("idle");
+    setMessage("");
+  }
+
+  async function reserveAndSendCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (!firstName.trim() || !phone.trim()) {
       setStatus("error");
-      setMessage("Этот слот занят");
+      setMessage("Укажите имя и телефон");
       return;
     }
     setStatus("loading");
     setMessage("");
     try {
-      const res = await fetch("/api/bookings", {
+      const reserveRes = await fetch("/api/booking/reserve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId, masterId, date, day, time }),
+        body: JSON.stringify({ serviceId, masterId, time }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ошибка записи");
-      setBookings((prev) => [...prev, data.booking as Booking]);
-      setStatus("ok");
-      setMessage("Запись сохранена");
+      const reserveData = await reserveRes.json();
+      if (!reserveRes.ok) {
+        throw new Error(reserveData.error || "Не удалось зарезервировать слот");
+      }
+      setRecordId(reserveData.recordId);
+
+      const smsRes = await fetch("/api/booking/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        }),
+      });
+      const smsData = await smsRes.json();
+      if (!smsRes.ok) {
+        throw new Error(smsData.error || "Не удалось отправить SMS");
+      }
+      setStep("sms");
+      setStatus("idle");
+      setMessage(smsData.info || "Код отправлен в SMS");
     } catch (err) {
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Ошибка записи");
+      setMessage(err instanceof Error ? err.message : "Ошибка");
     }
+  }
+
+  async function confirmBooking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!smsCode.trim()) {
+      setStatus("error");
+      setMessage("Введите код из SMS");
+      return;
+    }
+    setStatus("loading");
+    setMessage("");
+    try {
+      const res = await fetch("/api/booking/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceId,
+          masterId,
+          time,
+          phone: phone.trim(),
+          code: smsCode.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          comment: comment.trim(),
+          skipReserve: Boolean(recordId),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка подтверждения");
+      setStep("done");
+      setStatus("ok");
+      setMessage("Запись создана");
+    } catch (err) {
+      setStatus("error");
+      setMessage(err instanceof Error ? err.message : "Ошибка подтверждения");
+    }
+  }
+
+  if (catalogLoading) {
+    return <p className="text-sm font-light text-white/60">Загрузка…</p>;
+  }
+
+  if (step === "done") {
+    return (
+      <div className="flex w-full max-w-xl flex-col items-center gap-6 text-center">
+        <p className="text-lg font-light text-white">Вы записаны</p>
+        <p className="text-sm font-light text-white/70">
+          {selectedService?.name}
+          {date ? ` · ${formatSelectedDate(date)}` : ""}
+          {time ? ` · ${timeLabel(time)}` : ""}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setStep("slot");
+            setSmsCode("");
+            setRecordId(null);
+            setStatus("idle");
+            setMessage("");
+          }}
+          className="text-sm font-light text-burgundy"
+        >
+          Записаться ещё
+        </button>
+      </div>
+    );
+  }
+
+  if (step === "sms") {
+    return (
+      <form
+        onSubmit={confirmBooking}
+        className="flex w-full max-w-md flex-col items-center gap-8"
+      >
+        <p className="text-center text-sm font-light text-white/80">
+          Введите код из SMS, отправленный на {phone}
+        </p>
+        <label className="flex w-full flex-col gap-3 text-sm font-light text-white">
+          <span>Код</span>
+          <input
+            value={smsCode}
+            onChange={(e) => setSmsCode(e.target.value)}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            className="border-0 border-b border-white bg-transparent pb-2 text-center text-lg tracking-[0.3em] text-white outline-none"
+            placeholder="••••"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+        >
+          {status === "loading" ? "…" : "ПОДТВЕРДИТЬ"}
+        </button>
+        <button
+          type="button"
+          className="text-xs font-light text-white/50"
+          onClick={() => {
+            setStep("contacts");
+            setStatus("idle");
+            setMessage("");
+          }}
+        >
+          ← назад
+        </button>
+        {message ? (
+          <p
+            className={
+              "text-sm font-light " +
+              (status === "error" ? "text-burgundy" : "text-white/70")
+            }
+          >
+            {message}
+          </p>
+        ) : null}
+      </form>
+    );
+  }
+
+  if (step === "contacts") {
+    return (
+      <form
+        onSubmit={reserveAndSendCode}
+        className="flex w-full max-w-md flex-col items-center gap-8"
+      >
+        <p className="text-center text-sm font-light text-white/70">
+          {selectedService?.name}
+          {date ? ` · ${formatSelectedDate(date)}` : ""}
+          {time ? ` · ${timeLabel(time)}` : ""}
+        </p>
+        <label className="flex w-full flex-col gap-3 text-sm font-light text-white">
+          <span>Имя</span>
+          <input
+            required
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
+          />
+        </label>
+        <label className="flex w-full flex-col gap-3 text-sm font-light text-white">
+          <span>Фамилия</span>
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
+          />
+        </label>
+        <label className="flex w-full flex-col gap-3 text-sm font-light text-white">
+          <span>Телефон</span>
+          <input
+            required
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+7…"
+            className="border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
+          />
+        </label>
+        <label className="flex w-full flex-col gap-3 text-sm font-light text-white">
+          <span>Комментарий</span>
+          <input
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+        >
+          {status === "loading" ? "…" : "ПОЛУЧИТЬ SMS-КОД"}
+        </button>
+        <button
+          type="button"
+          className="text-xs font-light text-white/50"
+          onClick={() => {
+            setStep("slot");
+            setStatus("idle");
+            setMessage("");
+          }}
+        >
+          ← назад
+        </button>
+        {message ? (
+          <p className="text-sm font-light text-burgundy">{message}</p>
+        ) : null}
+      </form>
+    );
   }
 
   return (
     <form
-      onSubmit={onSubmit}
+      onSubmit={goToContacts}
       className="flex w-full max-w-3xl flex-col items-center gap-12"
     >
-      <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-2">
         <label className="flex flex-col gap-3 text-sm font-light text-white">
           <span>Услуга</span>
           <select
             value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
+            onChange={(e) => {
+              setServiceId(e.target.value);
+              setDate("");
+              setTime("");
+              setTimes([]);
+            }}
             className="appearance-none border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
           >
-            {serviceCategories.map((category) => (
-              <optgroup key={category} label={category} className="bg-black text-white">
+            {categories.map((category) => (
+              <optgroup
+                key={category}
+                label={category}
+                className="bg-black text-white"
+              >
                 {services
                   .filter((s) => s.category === category)
                   .map((s) => (
-                    <option key={s.id} value={s.id} className="bg-black text-white">
+                    <option
+                      key={s.id}
+                      value={s.id}
+                      className="bg-black text-white"
+                    >
                       {s.name} — {formatPrice(s.price, s.priceFrom)}
                     </option>
                   ))}
@@ -134,7 +638,12 @@ export default function BookingForm({ initialBookings }: Props) {
           <span>Мастер</span>
           <select
             value={masterId}
-            onChange={(e) => setMasterId(e.target.value)}
+            onChange={(e) => {
+              setMasterId(e.target.value);
+              setDate("");
+              setTime("");
+              setTimes([]);
+            }}
             className="appearance-none border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
           >
             {masters.map((m) => (
@@ -144,81 +653,79 @@ export default function BookingForm({ initialBookings }: Props) {
             ))}
           </select>
         </label>
-
-        <label className="flex flex-col gap-3 text-sm font-light text-white">
-          <span>Дата</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="appearance-none border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none [color-scheme:dark]"
-          />
-        </label>
       </div>
 
-      <div className="grid w-full grid-cols-7 gap-2 md:gap-4">
-        {weekDays.map((d) => {
-          const slots = timeSlotsByDay[d] || [];
-          return (
-            <div key={d} className="flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setDay(d);
-                  setDate(nextDateForDay(d));
-                  if (slots[0]) setTime(slots[0]);
-                }}
-                className={
-                  "text-xs font-light tracking-wider md:text-sm " +
-                  (day === d ? "text-white" : "text-white/50")
-                }
-              >
-                {d}
-              </button>
-              <div className="flex flex-col gap-2">
-                {slots.map((t) => {
-                  const busy = busySet.has(d + "|" + t);
-                  const selected = day === d && time === t;
-                  return (
-                    <button
-                      key={d + t}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setDay(d);
-                        setTime(t);
-                        setDate(nextDateForDay(d));
-                      }}
-                      className={
-                        "relative min-w-[3.25rem] border px-2 py-1.5 text-[11px] font-light tracking-wide transition md:min-w-[3.75rem] md:text-xs " +
-                        (busy
-                          ? "cursor-not-allowed border-white/20 text-white/30"
-                          : selected
+      {serviceId && masterId ? (
+        <>
+          <div className="w-full">
+            <p className="mb-5 text-center text-xs font-light tracking-[0.2em] text-white/60">
+              КАЛЕНДАРЬ
+            </p>
+            <MonthCalendar
+              year={viewYear}
+              month={viewMonth}
+              available={availableSet}
+              selected={date}
+              onSelect={(iso) => void onPickDate(iso)}
+              onPrev={() => shiftMonth(-1)}
+              onNext={() => shiftMonth(1)}
+              loading={slotsLoading && !date}
+            />
+            {!slotsLoading && datesTrue.length === 0 ? (
+              <p className="mt-4 text-center text-sm font-light text-white/50">
+                Нет свободных дат у этого мастера
+              </p>
+            ) : (
+              <p className="mt-4 text-center text-[11px] font-light text-white/35">
+                Точка / рамка — есть свободные слоты
+              </p>
+            )}
+          </div>
+
+          {date ? (
+            <div className="w-full">
+              <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                СВОБОДНОЕ ВРЕМЯ · {formatSelectedDate(date)}
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {slotsLoading ? (
+                  <span className="text-sm font-light text-white/50">…</span>
+                ) : times.length === 0 ? (
+                  <span className="text-sm font-light text-white/50">
+                    На этот день нет свободных слотов
+                  </span>
+                ) : (
+                  times.map((t) => {
+                    const selected = time === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTime(t)}
+                        className={
+                          "min-w-[4.25rem] border px-3 py-2 text-xs font-light tracking-wide transition " +
+                          (selected
                             ? "border-burgundy bg-burgundy text-white"
                             : "border-white/80 text-white hover:border-burgundy")
-                      }
-                    >
-                      {t}
-                      {busy ? (
-                        <span className="absolute -right-1 -top-1 text-[8px] text-white">
-                          ●
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })}
+                        }
+                      >
+                        {timeLabel(t)}
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ) : null}
+        </>
+      ) : null}
 
       <button
         type="submit"
-        disabled={status === "loading"}
+        disabled={!time || slotsLoading}
         className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
       >
-        {status === "loading" ? "…" : "ЗАБРОНИРОВАТЬ"}
+        ДАЛЕЕ
       </button>
 
       {message ? (
