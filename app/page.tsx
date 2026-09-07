@@ -22,7 +22,7 @@ export default function HomePage() {
       </section>
 
       <div className="mx-auto w-full max-w-3xl border-t border-white/20 px-6 pb-16 pt-10">
-        <div className="grid grid-cols-3 gap-4 md:gap-10">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-6">
           {masters.map((m) => (
             <MasterCircle key={m.id} name={m.name} showDash />
           ))}
