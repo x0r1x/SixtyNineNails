@@ -1,0 +1,32 @@
+[
+  {
+    "id": "seed-1",
+    "serviceId": "gel",
+    "masterId": "anastasiya",
+    "date": "2026-09-08",
+    "day": "ВТ",
+    "time": "11:00",
+    "createdAt": "2026-09-01T10:00:00.000Z",
+    "clientName": "Елена"
+  },
+  {
+    "id": "seed-2",
+    "serviceId": "combo",
+    "masterId": "polina",
+    "date": "2026-09-10",
+    "day": "ЧТ",
+    "time": "14:00",
+    "createdAt": "2026-09-02T12:00:00.000Z",
+    "clientName": "Ольга"
+  },
+  {
+    "id": "seed-3",
+    "serviceId": "extension",
+    "masterId": "mariya",
+    "date": "2026-09-12",
+    "day": "СБ",
+    "time": "13:00",
+    "createdAt": "2026-09-03T09:30:00.000Z",
+    "clientName": "Ирина"
+  }
+]
