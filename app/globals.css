@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --burgundy: #7A1F2B;
+}
+
+html,
+body {
+  background: #000;
+  color: #fff;
+  min-height: 100%;
+}
+
+body {
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+::selection {
+  background: #7A1F2B;
+  color: #fff;
+}
