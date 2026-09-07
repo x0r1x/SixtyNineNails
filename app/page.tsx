@@ -1,8 +1,12 @@
 import Link from "next/link";
 import MasterCircle from "@/components/MasterCircle";
-import { masters } from "@/lib/data";
+import { getCatalogMasters } from "@/lib/dikidi";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const { masters } = await getCatalogMasters();
+
   return (
     <div className="flex flex-1 flex-col">
       <section className="flex flex-1 flex-col items-center justify-center px-6 pb-10 pt-8 text-center">

@@ -1,14 +1,23 @@
 import Link from "next/link";
-import { formatPrice, serviceCategories, services } from "@/lib/data";
+import { formatPrice } from "@/lib/data";
+import {
+  categoriesFromServices,
+  getCatalogServices,
+} from "@/lib/dikidi";
 
-export default function UslugiPage() {
+export const dynamic = "force-dynamic";
+
+export default async function UslugiPage() {
+  const { services, source } = await getCatalogServices();
+  const categories = categoriesFromServices(services);
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-20 pt-10">
       <h1 className="mb-12 text-4xl font-extralight tracking-wide text-white md:text-5xl">
         Услуги
       </h1>
       <div className="w-full max-w-xl space-y-10">
-        {serviceCategories.map((category) => {
+        {categories.map((category) => {
           const items = services.filter((s) => s.category === category);
           if (items.length === 0) return null;
           return (
@@ -33,6 +42,11 @@ export default function UslugiPage() {
           );
         })}
       </div>
+      {source === "static" ? (
+        <p className="mt-6 text-xs font-light text-white/40">
+          Показан локальный прайс (API недоступен)
+        </p>
+      ) : null}
       <Link
         href="/zapis"
         className="mt-14 text-sm font-light text-burgundy transition hover:opacity-80"

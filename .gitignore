@@ -12,13 +12,12 @@
 .idea
 .vscode
 
-# env
-.env*
-.env*.local
+# env (keep example)
+.env
+.env.local
+.env.*.local
+!.env.example
 
 # typescript / next generated
 *.tsbuildinfo
 next-env.d.ts
-
-# runtime data writes (keep seed JSON tracked)
-# data/*.runtime.json
