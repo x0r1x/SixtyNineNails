@@ -7,7 +7,7 @@ export default function MasteraPage() {
       <h1 className="mb-14 text-4xl font-extralight tracking-wide text-white md:text-5xl">
         Мастера
       </h1>
-      <div className="grid w-full max-w-3xl grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8">
+      <div className="grid w-full max-w-4xl grid-cols-2 gap-10 sm:grid-cols-4 sm:gap-8">
         {masters.map((m) => (
           <MasterCircle
             key={m.id}

@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  formatPrice,
   masters,
+  serviceCategories,
   services,
   timeSlotsByDay,
   weekDays,
@@ -114,10 +116,16 @@ export default function BookingForm({ initialBookings }: Props) {
             onChange={(e) => setServiceId(e.target.value)}
             className="appearance-none border-0 border-b border-white bg-transparent pb-2 text-sm text-white outline-none"
           >
-            {services.map((s) => (
-              <option key={s.id} value={s.id} className="bg-black text-white">
-                {s.name}
-              </option>
+            {serviceCategories.map((category) => (
+              <optgroup key={category} label={category} className="bg-black text-white">
+                {services
+                  .filter((s) => s.category === category)
+                  .map((s) => (
+                    <option key={s.id} value={s.id} className="bg-black text-white">
+                      {s.name} — {formatPrice(s.price, s.priceFrom)}
+                    </option>
+                  ))}
+              </optgroup>
             ))}
           </select>
         </label>
