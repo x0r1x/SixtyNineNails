@@ -166,6 +166,7 @@ function MonthCalendar({
 export default function BookingForm() {
   const searchParams = useSearchParams();
   const masterFromQuery = searchParams.get("master") || "";
+  const serviceFromQuery = searchParams.get("service") || "";
 
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -220,7 +221,11 @@ export default function BookingForm() {
             [...new Set(svcList.map((s) => s.category))]
         );
         setMasters(mstList);
-        if (svcList[0]) setServiceId(svcList[0].id);
+        const preferredService =
+          serviceFromQuery && svcList.some((s) => s.id === serviceFromQuery)
+            ? serviceFromQuery
+            : svcList[0]?.id || "";
+        setServiceId(preferredService);
         const preferred =
           masterFromQuery && mstList.some((m) => m.id === masterFromQuery)
             ? masterFromQuery
@@ -238,7 +243,7 @@ export default function BookingForm() {
     return () => {
       cancelled = true;
     };
-  }, [masterFromQuery]);
+  }, [masterFromQuery, serviceFromQuery]);
 
   useEffect(() => {
     if (!serviceId) return;
