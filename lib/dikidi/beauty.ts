@@ -15,7 +15,15 @@ type BeautyMaster = {
   surname?: string;
   username?: string;
   post?: string;
+  image?: { id?: string; type?: string; src?: string } | string | null;
 };
+
+function masterImageUrl(m: BeautyMaster): string | undefined {
+  const img = m.image;
+  if (!img) return undefined;
+  if (typeof img === "string") return img || undefined;
+  return img.src || undefined;
+}
 
 async function beautyGet<T>(path: string): Promise<T> {
   const key = await getDikidiApiKey();
@@ -32,7 +40,9 @@ async function beautyGet<T>(path: string): Promise<T> {
 }
 
 function displayMasterName(m: BeautyMaster): string {
+  // Prefer given name from Dikidi for airy cards; fall back to username / full name.
   const base =
+    m.name?.trim() ||
     m.username?.trim() ||
     [m.name, m.surname].filter(Boolean).join(" ").trim() ||
     String(m.id);
@@ -60,6 +70,7 @@ export async function fetchBeautyMasters(): Promise<Master[]> {
     id: String(m.id),
     name: displayMasterName(m),
     specialty: (m.post || "").trim() || "мастер",
+    image: masterImageUrl(m),
   }));
 }
 
@@ -73,5 +84,6 @@ export async function fetchBeautyMastersForService(
     id: String(m.id),
     name: displayMasterName(m),
     specialty: (m.post || "").trim() || "мастер",
+    image: masterImageUrl(m),
   }));
 }
