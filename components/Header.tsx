@@ -13,15 +13,18 @@ const links = [
 export default function Header() {
   const pathname = usePathname();
 
+  // Home owns Soft splash → Hero header + flying logo
+  if (pathname === "/") return null;
+
   return (
-    <header className="flex w-full items-center justify-between px-6 py-6 md:px-12">
+    <header className="relative z-20 flex w-full items-center justify-between px-6 py-6 md:px-12">
       <Link href="/" className="shrink-0" aria-label="SixtyNineNails — главная">
         <Image
-          src="/logo.png"
+          src="/logo-small.png"
           alt="SixtyNineNails"
           width={72}
           height={72}
-          className="h-14 w-14 rounded-full object-cover md:h-16 md:w-16"
+          className="h-[72px] w-[72px] object-contain"
           priority
         />
       </Link>
