@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={inter.variable}>
-      <body className="min-h-screen bg-black font-sans antialiased">
+      <body className={`${inter.className} min-h-screen bg-black font-sans font-light antialiased`}>
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col">
           <Header />
           <main className="flex flex-1 flex-col">{children}</main>

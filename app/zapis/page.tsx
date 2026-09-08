@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default function ZapisPage() {
   return (
     <div className="relative flex flex-1 flex-col items-center px-4 pb-16 pt-10 md:px-6">
-      <h1 className="mb-12 text-4xl font-extralight tracking-wide text-white md:text-5xl">
+      <h1 className="mb-12 text-4xl font-extralight tracking-display text-white md:text-5xl">
         Запись
       </h1>
       <Suspense
