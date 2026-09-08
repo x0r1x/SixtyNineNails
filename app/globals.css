@@ -10,6 +10,10 @@
   --sn-delay: 0ms;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   background: #000;
@@ -122,21 +126,158 @@ body {
     color 150ms ease;
 }
 
+/* ── Soft stagger reveal (cards / lists) ── */
+.sn-reveal-stagger {
+  animation: sn-reveal 320ms cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
+  animation-delay: var(--sn-delay, 0ms);
+}
+
+/* ── Master circle hover ── */
+.sn-master {
+  transition: transform 200ms ease;
+}
+
+.sn-master-ring {
+  transition:
+    transform 220ms cubic-bezier(0.45, 0.05, 0.55, 0.95),
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.sn-master:hover .sn-master-ring {
+  transform: scale(1.03);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(122, 31, 43, 0.5),
+    0 0 16px rgba(122, 31, 43, 0.38),
+    0 0 28px rgba(255, 255, 255, 0.08);
+}
+
+.sn-master:active .sn-master-ring {
+  transform: scale(0.98);
+}
+
+/* ── Service row hover ── */
+.sn-row {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease,
+    color 150ms ease,
+    filter 180ms ease;
+}
+
+.sn-row:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.035);
+  transform: translateX(3px);
+  filter: brightness(1.06);
+}
+
+.sn-row:active {
+  transform: translateX(1px) scale(0.995);
+}
+
+/* ── Booking: selected slot soft pulse ── */
+@keyframes sn-slot-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(122, 31, 43, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(122, 31, 43, 0);
+  }
+}
+
+.sn-chip.is-selected {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 80ms ease;
+  animation: sn-slot-glow 2.2s ease-in-out infinite;
+}
+
+/* ── Booking: step panel + success ── */
+.sn-step-panel {
+  animation: sn-reveal 280ms cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
+}
+
+@keyframes sn-success-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sn-success-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(122, 31, 43, 0.85);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1;
+  box-shadow: 0 0 18px rgba(122, 31, 43, 0.35);
+  animation: sn-success-in 420ms cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
+}
+
+/* ── Page enter (route change) ── */
+@keyframes sn-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sn-page-enter {
+  animation: sn-page-enter 320ms cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .sn-reveal,
-  .sn-calendar-enter {
+  .sn-reveal-stagger,
+  .sn-calendar-enter,
+  .sn-step-panel,
+  .sn-page-enter,
+  .sn-success-check,
+  .sn-chip.is-selected {
     animation: none !important;
   }
 
   .sn-chip,
   .sn-btn,
   .sn-link-burgundy,
-  .sn-nav-link {
+  .sn-nav-link,
+  .sn-row,
+  .sn-master,
+  .sn-master-ring {
     transition: none !important;
   }
 
   .sn-chip:active:not(:disabled),
-  .sn-btn:active:not(:disabled) {
+  .sn-btn:active:not(:disabled),
+  .sn-row:hover,
+  .sn-row:active,
+  .sn-master:hover .sn-master-ring,
+  .sn-master:active .sn-master-ring {
     transform: none;
   }
 }
@@ -250,36 +391,36 @@ body {
 }
 
 .sn-home-nav-item {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   transition:
-    opacity 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95),
-    transform 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-  transition-delay: calc(0.35s + var(--sn-nav-i, 0) * 0.07s);
+    opacity 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95),
+    transform 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  transition-delay: calc(0.55s + var(--sn-nav-i, 0) * 0.1s);
 }
 
 .sn-home-title {
-  transform: translateY(16px);
+  transform: translateY(18px);
   transition:
-    opacity 1.1s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.4s,
-    transform 1.1s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.4s;
+    opacity 1.25s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.7s,
+    transform 1.25s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.7s;
 }
 
 .sn-home-lead {
-  transition: opacity 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.55s;
+  transition: opacity 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.95s;
 }
 
 .sn-home-line {
-  transform: scaleX(0.35);
+  transform: scaleX(0.3);
   transition:
-    opacity 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.65s,
-    transform 1s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.65s;
+    opacity 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) 1.1s,
+    transform 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) 1.1s;
 }
 
 .sn-home-cta {
-  transform: translateY(10px);
+  transform: translateY(12px);
   transition:
-    opacity 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.75s,
-    transform 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.75s,
+    opacity 1.25s cubic-bezier(0.45, 0.05, 0.55, 0.95) 1.25s,
+    transform 1.25s cubic-bezier(0.45, 0.05, 0.55, 0.95) 1.25s,
     border-color 150ms ease,
     background-color 150ms ease,
     filter 150ms ease;

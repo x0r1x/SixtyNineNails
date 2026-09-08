@@ -497,7 +497,10 @@ export default function BookingForm() {
 
   if (step === "done") {
     return (
-      <div className="sn-reveal flex w-full max-w-xl flex-col items-center gap-6 text-center">
+      <div className="sn-step-panel flex w-full max-w-xl flex-col items-center gap-6 text-center">
+        <span className="sn-success-check" aria-hidden>
+          ✓
+        </span>
         <p className="text-lg font-light text-white">Вы записаны</p>
         <p className="text-sm font-light text-white/70">
           {selectedService?.name}
@@ -525,7 +528,7 @@ export default function BookingForm() {
     return (
       <form
         onSubmit={confirmBooking}
-        className="flex w-full max-w-md flex-col items-center gap-8"
+        className="sn-step-panel flex w-full max-w-md flex-col items-center gap-8"
       >
         <p className="text-center text-sm font-light text-white/80">
           Введите код из SMS, отправленный на {phone}
@@ -577,7 +580,7 @@ export default function BookingForm() {
     return (
       <form
         onSubmit={reserveAndSendCode}
-        className="flex w-full max-w-md flex-col items-center gap-8"
+        className="sn-step-panel flex w-full max-w-md flex-col items-center gap-8"
       >
         <p className="text-center text-sm font-light text-white/70">
           {selectedService?.name}
@@ -648,7 +651,7 @@ export default function BookingForm() {
   return (
     <form
       onSubmit={goToContacts}
-      className="flex w-full max-w-3xl flex-col items-center gap-12"
+      className="sn-step-panel flex w-full max-w-3xl flex-col items-center gap-12"
     >
       <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-2">
         <label className="flex flex-col gap-3 text-sm font-light text-white">
@@ -766,7 +769,7 @@ export default function BookingForm() {
                   ВРЕМЯ
                 </p>
               )}
-              <div className="flex flex-wrap justify-center gap-2">
+              <div className="sn-reveal flex flex-wrap justify-center gap-2">
                 {slotsLoading ? (
                   <span className="text-sm font-light text-white/50">…</span>
                 ) : times.length === 0 ? (
@@ -784,7 +787,7 @@ export default function BookingForm() {
                         className={
                           "sn-chip min-w-[4.25rem] border px-3 py-2 text-xs font-light tracking-wide " +
                           (selected
-                            ? "border-burgundy bg-burgundy text-white"
+                            ? "is-selected border-burgundy bg-burgundy text-white"
                             : "border-white/80 text-white hover:border-burgundy")
                         }
                       >

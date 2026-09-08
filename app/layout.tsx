@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Header from "@/components/Header";
+import PageEnter from "@/components/PageEnter";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,7 +27,9 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-black font-sans font-light antialiased`}>
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col">
           <Header />
-          <main className="flex flex-1 flex-col">{children}</main>
+          <main className="flex flex-1 flex-col">
+            <PageEnter>{children}</PageEnter>
+          </main>
         </div>
       </body>
     </html>

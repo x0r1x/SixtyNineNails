@@ -15,8 +15,8 @@ export default async function MasteraPage() {
         {masters.map((m, i) => (
           <div
             key={m.id}
-            className="sn-reveal"
-            style={{ ["--sn-delay" as string]: `${80 + i * 45}ms` }}
+            className="sn-reveal-stagger"
+            style={{ ["--sn-delay" as string]: `${90 + i * 70}ms` }}
           >
             <MasterCircle
               name={m.name}
