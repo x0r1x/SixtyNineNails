@@ -21,9 +21,9 @@ export default function MasterCircle({
   const px = size === "lg" ? 176 : 112;
 
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
+    <div className="sn-master flex flex-col items-center gap-3 text-center">
       <div
-        className={`relative overflow-hidden rounded-full border border-white/80 bg-white/5 ${dim}`}
+        className={`sn-master-ring relative overflow-hidden rounded-full border border-white/80 bg-white/5 ${dim}`}
       >
         {image ? (
           <Image

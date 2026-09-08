@@ -63,7 +63,7 @@ export default async function UslugiPage() {
                   <li key={service.id}>
                     <Link
                       href={"/zapis?service=" + encodeURIComponent(service.id)}
-                      className="flex items-baseline justify-between gap-6 border-b border-white/15 py-4 text-sm font-light text-white transition-[color,opacity] duration-150 hover:text-white/80 md:text-base"
+                      className="sn-row flex items-baseline justify-between gap-6 border-b border-white/15 px-1 py-4 text-sm font-light text-white hover:text-white md:text-base"
                     >
                       <span>{service.name}</span>
                       <span className="shrink-0 sn-price tabular-nums text-white/90">
