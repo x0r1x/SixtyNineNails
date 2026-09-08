@@ -1,7 +1,10 @@
 export type Master = {
   id: string;
   name: string;
+  /** Dikidi `post` — должность / описание */
   specialty: string;
+  /** Dikidi avatar `image.src` */
+  image?: string;
 };
 
 export type Service = {

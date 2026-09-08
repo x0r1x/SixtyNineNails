@@ -28,7 +28,7 @@ export default async function HomePage() {
       <div className="mx-auto w-full max-w-3xl border-t border-white/20 px-6 pb-16 pt-10">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-6">
           {masters.map((m) => (
-            <MasterCircle key={m.id} name={m.name} showDash />
+            <MasterCircle key={m.id} name={m.name} image={m.image} showDash />
           ))}
         </div>
       </div>
