@@ -8,19 +8,24 @@ export default async function MasteraPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-20 pt-10">
-      <h1 className="mb-16 text-4xl font-extralight tracking-display text-white md:text-5xl">
+      <h1 className="sn-reveal mb-16 text-4xl font-extralight tracking-display text-white md:text-5xl">
         Мастера
       </h1>
       <div className="grid w-full max-w-5xl grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-4 sm:gap-x-8 sm:gap-y-12">
-        {masters.map((m) => (
-          <MasterCircle
+        {masters.map((m, i) => (
+          <div
             key={m.id}
-            name={m.name}
-            specialty={m.specialty}
-            image={m.image}
-            size="lg"
-            chooseHref={"/zapis?master=" + m.id}
-          />
+            className="sn-reveal"
+            style={{ ["--sn-delay" as string]: `${80 + i * 45}ms` }}
+          >
+            <MasterCircle
+              name={m.name}
+              specialty={m.specialty}
+              image={m.image}
+              size="lg"
+              chooseHref={"/zapis?master=" + m.id}
+            />
+          </div>
         ))}
       </div>
       {source === "static" ? (
