@@ -40,8 +40,8 @@ export default function Header() {
                 href={link.href}
                 className={
                   active
-                    ? "border-b border-burgundy pb-0.5 text-white"
-                    : "border-b border-transparent pb-0.5 text-white/90 transition hover:text-white"
+                    ? "sn-nav-link border-b border-burgundy pb-0.5 text-white"
+                    : "sn-nav-link border-b border-transparent pb-0.5 text-white/90 hover:border-burgundy hover:text-white"
                 }
               >
                 {link.label}

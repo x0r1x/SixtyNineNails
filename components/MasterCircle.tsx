@@ -55,7 +55,7 @@ export default function MasterCircle({
         {chooseHref ? (
           <a
             href={chooseHref}
-            className="mt-2 inline-block text-xs font-light tracking-wide text-burgundy transition hover:opacity-80"
+            className="sn-link-burgundy mt-2 inline-block text-xs font-light tracking-wide text-burgundy"
           >
             выбрать
           </a>

@@ -134,12 +134,12 @@ function MonthCalendar({
               disabled={!canPick}
               onClick={() => canPick && onSelect(iso)}
               className={
-                "mx-auto flex h-9 w-9 items-center justify-center rounded-full text-xs font-light transition " +
+                "sn-chip mx-auto flex h-9 w-9 items-center justify-center rounded-full text-xs font-light " +
                 (isSelected
-                  ? "bg-burgundy text-white"
+                  ? "border border-burgundy bg-burgundy text-white"
                   : canPick
                     ? "border border-white/50 text-white hover:border-burgundy"
-                    : "text-white/25")
+                    : "border border-transparent text-white/25")
               }
               title={
                 canPick
@@ -497,7 +497,7 @@ export default function BookingForm() {
 
   if (step === "done") {
     return (
-      <div className="flex w-full max-w-xl flex-col items-center gap-6 text-center">
+      <div className="sn-reveal flex w-full max-w-xl flex-col items-center gap-6 text-center">
         <p className="text-lg font-light text-white">Вы записаны</p>
         <p className="text-sm font-light text-white/70">
           {selectedService?.name}
@@ -513,7 +513,7 @@ export default function BookingForm() {
             setStatus("idle");
             setMessage("");
           }}
-          className="text-sm font-light text-burgundy"
+          className="sn-link-burgundy text-sm font-light text-burgundy"
         >
           Записаться ещё
         </button>
@@ -544,7 +544,7 @@ export default function BookingForm() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+          className="sn-btn bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white hover:brightness-110 disabled:opacity-60 md:text-sm"
         >
           {status === "loading" ? "…" : "ПОДТВЕРДИТЬ"}
         </button>
@@ -623,7 +623,7 @@ export default function BookingForm() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+          className="sn-btn bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white hover:brightness-110 disabled:opacity-60 md:text-sm"
         >
           {status === "loading" ? "…" : "ПОЛУЧИТЬ SMS-КОД"}
         </button>
@@ -717,7 +717,7 @@ export default function BookingForm() {
                 <button
                   type="button"
                   onClick={() => setShowCalendar(true)}
-                  className="text-burgundy underline-offset-4 hover:underline"
+                  className="sn-link-burgundy text-burgundy underline-offset-4 hover:underline"
                 >
                   другая дата
                 </button>
@@ -727,7 +727,7 @@ export default function BookingForm() {
 
           {/* Month calendar B */}
           {showCalendar ? (
-            <div className="w-full">
+            <div className="sn-calendar-enter w-full">
               <p className="mb-5 text-center text-xs font-light tracking-label text-white/60">
                 КАЛЕНДАРЬ
               </p>
@@ -782,7 +782,7 @@ export default function BookingForm() {
                         type="button"
                         onClick={() => setTime(t)}
                         className={
-                          "min-w-[4.25rem] border px-3 py-2 text-xs font-light tracking-wide transition " +
+                          "sn-chip min-w-[4.25rem] border px-3 py-2 text-xs font-light tracking-wide " +
                           (selected
                             ? "border-burgundy bg-burgundy text-white"
                             : "border-white/80 text-white hover:border-burgundy")
@@ -802,7 +802,7 @@ export default function BookingForm() {
       <button
         type="submit"
         disabled={!time || slotsLoading}
-        className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+        className="sn-btn bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white hover:brightness-110 disabled:opacity-60 md:text-sm"
       >
         ЗАБРОНИРОВАТЬ
       </button>
