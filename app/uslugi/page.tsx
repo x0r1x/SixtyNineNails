@@ -21,7 +21,7 @@ export default async function UslugiPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-20 pt-10">
-      <h1 className="mb-10 text-4xl font-extralight tracking-wide text-white md:text-5xl">
+      <h1 className="mb-10 text-4xl font-extralight tracking-display text-white md:text-5xl">
         Услуги
       </h1>
 
@@ -34,7 +34,7 @@ export default async function UslugiPage() {
             <a
               key={category}
               href={"#" + categoryAnchor(category)}
-              className="border border-white/40 px-3 py-2 text-[11px] font-light tracking-[0.14em] text-white/80 transition hover:border-burgundy hover:text-white"
+              className="border border-white/40 px-3 py-2 text-[11px] font-light tracking-[0.16em] text-white/80 transition hover:border-burgundy hover:text-white"
             >
               {category}
             </a>
@@ -60,7 +60,7 @@ export default async function UslugiPage() {
                       className="flex items-baseline justify-between gap-6 border-b border-white/15 py-4 text-sm font-light text-white transition hover:text-white/80 md:text-base"
                     >
                       <span>{service.name}</span>
-                      <span className="shrink-0 tabular-nums text-white/90">
+                      <span className="shrink-0 sn-price tabular-nums text-white/90">
                         {formatPrice(service.price, service.priceFrom)}
                       </span>
                     </Link>

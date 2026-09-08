@@ -4,6 +4,9 @@
 
 :root {
   --burgundy: #7A1F2B;
+  --tracking-display: 0.1em;
+  --tracking-nav: 0.2em;
+  --tracking-label: 0.22em;
 }
 
 html,
@@ -15,10 +18,30 @@ body {
 
 body {
   font-weight: 300;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.015em;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 ::selection {
   background: #7A1F2B;
   color: #fff;
+}
+
+/* Refined Inter display titles */
+.sn-display {
+  font-weight: 200;
+  letter-spacing: var(--tracking-display);
+}
+
+.sn-nav {
+  letter-spacing: var(--tracking-nav);
+}
+
+.sn-label {
+  letter-spacing: var(--tracking-label);
+}
+
+.sn-price {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }

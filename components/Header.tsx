@@ -25,7 +25,7 @@ export default function Header() {
           priority
         />
       </Link>
-      <nav className="flex items-center gap-3 text-sm font-light tracking-wide text-white md:gap-4 md:text-base">
+      <nav className="flex items-center gap-3 text-sm font-light tracking-nav text-white md:gap-4 md:text-base">
         {links.map((link, i) => {
           const active =
             pathname === link.href || pathname.startsWith(link.href + "/");

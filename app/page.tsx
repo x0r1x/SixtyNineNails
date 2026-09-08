@@ -10,7 +10,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       <section className="flex flex-1 flex-col items-center justify-center px-6 pb-10 pt-8 text-center">
-        <h1 className="text-5xl font-extralight tracking-wide text-white md:text-7xl">
+        <h1 className="text-5xl font-extralight tracking-display text-white md:text-7xl">
           Маникюр
         </h1>
         <p className="mt-5 max-w-md text-sm font-light leading-relaxed text-white/90 md:text-base">
@@ -19,7 +19,7 @@ export default async function HomePage() {
         <div className="mt-6 h-px w-16 bg-burgundy" />
         <Link
           href="/zapis"
-          className="mt-8 border border-burgundy px-10 py-3 text-xs font-light tracking-[0.2em] text-white transition hover:bg-burgundy/20 md:text-sm"
+          className="mt-8 border border-burgundy px-10 py-3 text-xs font-light tracking-label text-white transition hover:bg-burgundy/20 md:text-sm"
         >
           ЗАПИСАТЬСЯ
         </Link>

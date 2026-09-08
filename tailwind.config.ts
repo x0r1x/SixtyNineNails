@@ -14,6 +14,11 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
+      letterSpacing: {
+        display: "0.1em",
+        nav: "0.2em",
+        label: "0.22em",
+      },
     },
   },
   plugins: [],

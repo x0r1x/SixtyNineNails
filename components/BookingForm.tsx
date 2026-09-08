@@ -544,7 +544,7 @@ export default function BookingForm() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+          className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
         >
           {status === "loading" ? "…" : "ПОДТВЕРДИТЬ"}
         </button>
@@ -623,7 +623,7 @@ export default function BookingForm() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+          className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
         >
           {status === "loading" ? "…" : "ПОЛУЧИТЬ SMS-КОД"}
         </button>
@@ -728,7 +728,7 @@ export default function BookingForm() {
           {/* Month calendar B */}
           {showCalendar ? (
             <div className="w-full">
-              <p className="mb-5 text-center text-xs font-light tracking-[0.2em] text-white/60">
+              <p className="mb-5 text-center text-xs font-light tracking-label text-white/60">
                 КАЛЕНДАРЬ
               </p>
               <MonthCalendar
@@ -758,11 +758,11 @@ export default function BookingForm() {
           {date && (!showCalendar || times.length > 0 || slotsLoading) ? (
             <div className="w-full">
               {showCalendar ? (
-                <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                <p className="mb-4 text-center text-xs font-light tracking-label text-white/60">
                   СВОБОДНОЕ ВРЕМЯ · {formatSelectedDate(date)}
                 </p>
               ) : (
-                <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                <p className="mb-4 text-center text-xs font-light tracking-label text-white/60">
                   ВРЕМЯ
                 </p>
               )}
@@ -802,7 +802,7 @@ export default function BookingForm() {
       <button
         type="submit"
         disabled={!time || slotsLoading}
-        className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
+        className="bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
       >
         ЗАБРОНИРОВАТЬ
       </button>
