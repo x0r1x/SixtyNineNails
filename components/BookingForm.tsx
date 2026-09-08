@@ -134,7 +134,7 @@ function MonthCalendar({
               disabled={!canPick}
               onClick={() => canPick && onSelect(iso)}
               className={
-                "aspect-square rounded-sm text-xs font-light transition " +
+                "mx-auto flex h-9 w-9 items-center justify-center rounded-full text-xs font-light transition " +
                 (isSelected
                   ? "bg-burgundy text-white"
                   : canPick
@@ -150,9 +150,6 @@ function MonthCalendar({
               }
             >
               {dayNum}
-              {canPick && !isSelected ? (
-                <span className="mx-auto mt-0.5 block h-0.5 w-0.5 rounded-full bg-burgundy" />
-              ) : null}
             </button>
           );
         })}
@@ -182,6 +179,8 @@ export default function BookingForm() {
   const [times, setTimes] = useState<string[]>([]);
   const [time, setTime] = useState("");
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [noSlotsWarn, setNoSlotsWarn] = useState(false);
 
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
@@ -268,51 +267,96 @@ export default function BookingForm() {
   }, [serviceId]);
 
   const loadSlots = useCallback(
-    async (sid: string, mid: string, d?: string) => {
+    async (sid: string, mid: string, d?: string, opts?: { fromPick?: boolean }) => {
       if (!sid || !mid) return;
       setSlotsLoading(true);
       setMessage("");
+      setNoSlotsWarn(false);
       try {
-        const q = new URLSearchParams({ serviceId: sid, masterId: mid });
-        if (d) q.set("date", d);
-        const res = await fetch("/api/slots?" + q.toString());
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Ошибка слотов");
-        const dates = (data.datesTrue || []) as string[];
+        const fetchOnce = async (dateParam?: string) => {
+          const q = new URLSearchParams({ serviceId: sid, masterId: mid });
+          if (dateParam) q.set("date", dateParam);
+          const res = await fetch("/api/slots?" + q.toString());
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Ошибка слотов");
+          return data as {
+            datesTrue?: string[];
+            dateNear?: string;
+            times?: string[];
+          };
+        };
+
+        let data = await fetchOnce(d);
+        let dates = (data.datesTrue || []) as string[];
         setDatesTrue(dates);
 
-        // Align calendar to first available / near date when resetting
-        const near = (data.dateNear as string) || dates[0];
-        if (near && !d) {
-          const nd = parseIso(near);
+        const near = (data.dateNear as string) || dates[0] || "";
+        let nextDate = "";
+        if (d) {
+          // Keep picked day even if it has no slots in this response
+          nextDate = d;
+        } else {
+          nextDate = near || dates[0] || "";
+        }
+
+        // Align month view to selected / near date
+        const alignTo = nextDate || near;
+        if (alignTo) {
+          const nd = parseIso(alignTo);
           setViewYear(nd.getFullYear());
           setViewMonth(nd.getMonth());
         }
 
-        let nextDate = "";
-        if (d && dates.includes(d)) {
-          nextDate = d;
-        } else if (d) {
-          // Picked a day with no availability in this response
-          nextDate = d;
-        } else {
-          nextDate = "";
-        }
-        setDate(nextDate);
-
-        const slotTimes = (data.times || []) as string[];
-        // Only show times if they match the selected date
-        const forDay = nextDate
+        let slotTimes = (data.times || []) as string[];
+        let forDay = nextDate
           ? slotTimes.filter((t) => t.startsWith(nextDate))
           : [];
+
+        // Without an explicit date, times may be empty until we request that day
+        if (!d && nextDate && forDay.length === 0) {
+          data = await fetchOnce(nextDate);
+          dates = (data.datesTrue || dates) as string[];
+          setDatesTrue(dates);
+          slotTimes = (data.times || []) as string[];
+          forDay = slotTimes.filter((t) => t.startsWith(nextDate));
+        }
+
+        setDate(nextDate);
         setTimes(forDay);
         setTime((prev) =>
           forDay.includes(prev) ? prev : forDay[0] || ""
         );
+
+        // Adaptive calendar visibility
+        if (opts?.fromPick) {
+          if (forDay.length > 0) {
+            setShowCalendar(false);
+            setNoSlotsWarn(false);
+          } else {
+            setShowCalendar(true);
+            setNoSlotsWarn(true);
+          }
+        } else if (!d) {
+          // Auto after service/master change
+          if (!nextDate || dates.length === 0) {
+            setShowCalendar(true);
+            setNoSlotsWarn(false);
+          } else if (forDay.length === 0) {
+            setShowCalendar(true);
+            setNoSlotsWarn(true);
+          } else {
+            setShowCalendar(false);
+            setNoSlotsWarn(false);
+          }
+        } else if (forDay.length === 0) {
+          setShowCalendar(true);
+          setNoSlotsWarn(true);
+        }
       } catch (err) {
         setDatesTrue([]);
         setTimes([]);
         setTime("");
+        setShowCalendar(true);
         setStatus("error");
         setMessage(err instanceof Error ? err.message : "Ошибка слотов");
       } finally {
@@ -328,6 +372,8 @@ export default function BookingForm() {
     setDate("");
     setTime("");
     setTimes([]);
+    setShowCalendar(false);
+    setNoSlotsWarn(false);
     void loadSlots(serviceId, masterId);
   }, [serviceId, masterId, loadSlots, step]);
 
@@ -346,7 +392,7 @@ export default function BookingForm() {
     setDate(iso);
     setTime("");
     setTimes([]);
-    await loadSlots(serviceId, masterId, iso);
+    await loadSlots(serviceId, masterId, iso, { fromPick: true });
   }
 
   async function goToContacts(e: React.FormEvent) {
@@ -657,36 +703,64 @@ export default function BookingForm() {
 
       {serviceId && masterId ? (
         <>
-          <div className="w-full">
-            <p className="mb-5 text-center text-xs font-light tracking-[0.2em] text-white/60">
-              КАЛЕНДАРЬ
-            </p>
-            <MonthCalendar
-              year={viewYear}
-              month={viewMonth}
-              available={availableSet}
-              selected={date}
-              onSelect={(iso) => void onPickDate(iso)}
-              onPrev={() => shiftMonth(-1)}
-              onNext={() => shiftMonth(1)}
-              loading={slotsLoading && !date}
-            />
-            {!slotsLoading && datesTrue.length === 0 ? (
-              <p className="mt-4 text-center text-sm font-light text-white/50">
-                Нет свободных дат у этого мастера
+          {/* Compact A: selected date line */}
+          {!showCalendar && date ? (
+            <div className="w-full text-center">
+              <p className="text-sm font-light text-white">
+                {formatSelectedDate(date)}
+                {" · "}
+                <button
+                  type="button"
+                  onClick={() => setShowCalendar(true)}
+                  className="text-burgundy underline-offset-4 hover:underline"
+                >
+                  другая дата
+                </button>
               </p>
-            ) : (
-              <p className="mt-4 text-center text-[11px] font-light text-white/35">
-                Точка / рамка — есть свободные слоты
-              </p>
-            )}
-          </div>
+            </div>
+          ) : null}
 
-          {date ? (
+          {/* Month calendar B */}
+          {showCalendar ? (
             <div className="w-full">
-              <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
-                СВОБОДНОЕ ВРЕМЯ · {formatSelectedDate(date)}
+              <p className="mb-5 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                КАЛЕНДАРЬ
               </p>
+              <MonthCalendar
+                year={viewYear}
+                month={viewMonth}
+                available={availableSet}
+                selected={date}
+                onSelect={(iso) => void onPickDate(iso)}
+                onPrev={() => shiftMonth(-1)}
+                onNext={() => shiftMonth(1)}
+                loading={slotsLoading}
+              />
+              {!slotsLoading && datesTrue.length === 0 ? (
+                <p className="mt-4 text-center text-sm font-light text-white/50">
+                  Нет свободных дат у этого мастера
+                </p>
+              ) : null}
+              {noSlotsWarn ? (
+                <p className="mt-4 text-center text-sm font-light text-burgundy">
+                  На эту дату свободных слотов нет. Выберите другую дату.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Time chips (compact or under calendar when day has times) */}
+          {date && (!showCalendar || times.length > 0 || slotsLoading) ? (
+            <div className="w-full">
+              {showCalendar ? (
+                <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                  СВОБОДНОЕ ВРЕМЯ · {formatSelectedDate(date)}
+                </p>
+              ) : (
+                <p className="mb-4 text-center text-xs font-light tracking-[0.2em] text-white/60">
+                  ВРЕМЯ
+                </p>
+              )}
               <div className="flex flex-wrap justify-center gap-2">
                 {slotsLoading ? (
                   <span className="text-sm font-light text-white/50">…</span>
@@ -725,7 +799,7 @@ export default function BookingForm() {
         disabled={!time || slotsLoading}
         className="bg-burgundy px-14 py-3 text-xs font-light tracking-[0.22em] text-white transition hover:brightness-110 disabled:opacity-60 md:text-sm"
       >
-        ДАЛЕЕ
+        ЗАБРОНИРОВАТЬ
       </button>
 
       {message ? (
