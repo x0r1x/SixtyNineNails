@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={inter.variable}>
+    <html lang="ru" className={inter.variable} data-scroll-behavior="smooth">
       <body className={`${inter.className} min-h-screen bg-black font-sans font-light antialiased`}>
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col">
           <Header />
