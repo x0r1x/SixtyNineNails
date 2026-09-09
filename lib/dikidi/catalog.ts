@@ -8,6 +8,7 @@ import {
   fetchBeautyMasters,
   fetchBeautyMastersForService,
   fetchBeautyServices,
+  fetchBeautyServicesForMaster,
 } from "./beauty";
 
 export async function getCatalogServices(): Promise<{
@@ -47,6 +48,20 @@ export async function getMastersForService(serviceId: string): Promise<{
   } catch {
     const all = await getCatalogMasters();
     return { masters: all.masters, source: all.source };
+  }
+}
+
+export async function getServicesForMaster(masterId: string): Promise<{
+  services: Service[];
+  source: "live" | "static";
+}> {
+  try {
+    const services = await fetchBeautyServicesForMaster(masterId);
+    if (!services.length) throw new Error("empty");
+    return { services, source: "live" };
+  } catch {
+    const all = await getCatalogServices();
+    return { services: all.services, source: all.source };
   }
 }
 

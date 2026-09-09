@@ -3,6 +3,7 @@ export {
   getCatalogServices,
   getCatalogMasters,
   getMastersForService,
+  getServicesForMaster,
   categoriesFromServices,
 } from "./catalog";
 export {
