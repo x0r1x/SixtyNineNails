@@ -110,3 +110,95 @@ export async function fetchBeautyServicesForMaster(
   return matched;
 }
 
+export type CompanyContacts = {
+  name: string;
+  description?: string;
+  phone?: string;
+  phones: string[];
+  whatsappUrl?: string;
+  addressLine: string;
+  city?: string;
+  street?: string;
+  district?: string;
+  lat?: number;
+  lng?: number;
+  scheduleLabel: string;
+  dikidiUrl: string;
+  links: { title: string; url: string }[];
+};
+
+type BeautyCompany = {
+  id?: string | number;
+  name?: string;
+  description?: string;
+  link?: string;
+  contacts?: {
+    phones?: string[];
+    links?: { title?: string; url?: string; name?: string; href?: string }[];
+    address?: {
+      city?: string;
+      street?: string;
+      house?: string;
+      district?: string;
+      lat?: number;
+      lng?: number;
+    };
+  };
+  schedule?: { day?: string; workFrom?: string; workTo?: string }[];
+};
+
+function formatPhoneTel(phone: string): string {
+  return phone.replace(/[^\d+]/g, "");
+}
+
+function scheduleToLabel(
+  schedule?: { day?: string; workFrom?: string; workTo?: string }[]
+): string {
+  if (!schedule?.length) return "";
+  const from = schedule[0]?.workFrom?.slice(0, 5);
+  const to = schedule[0]?.workTo?.slice(0, 5);
+  if (!from || !to) return "";
+  const same = schedule.every(
+    (d) => d.workFrom?.slice(0, 5) === from && d.workTo?.slice(0, 5) === to
+  );
+  return same ? `ежедневно ${from}–${to}` : `${from}–${to}`;
+}
+
+export async function fetchBeautyCompany(): Promise<CompanyContacts> {
+  const payload = await beautyGet<{ data: BeautyCompany }>(
+    `/companies/${COMPANY_ID}`
+  );
+  const c = payload.data || {};
+  const phones = (c.contacts?.phones || []).map(String).filter(Boolean);
+  const phone = phones[0];
+  const addr = c.contacts?.address;
+  const streetParts = [addr?.street, addr?.house].filter(Boolean).join(", ");
+  const addressLine = [addr?.city, streetParts, addr?.district]
+    .filter(Boolean)
+    .join(", ");
+  const links = (c.contacts?.links || [])
+    .map((l) => {
+      const url = (l.url || l.href || "").trim();
+      const title = (l.title || l.name || url).trim();
+      return url ? { title, url } : null;
+    })
+    .filter(Boolean) as { title: string; url: string }[];
+  const telDigits = phone ? formatPhoneTel(phone).replace(/^\+/, "") : "";
+  return {
+    name: c.name || "SixtyNineNails",
+    description: c.description?.trim() || undefined,
+    phone,
+    phones,
+    whatsappUrl: telDigits ? `https://wa.me/${telDigits}` : undefined,
+    addressLine,
+    city: addr?.city,
+    street: addr?.street,
+    district: addr?.district,
+    lat: addr?.lat,
+    lng: addr?.lng,
+    scheduleLabel: scheduleToLabel(c.schedule),
+    dikidiUrl: `https://dikidi.net/ru/${COMPANY_ID}`,
+    links,
+  };
+}
+

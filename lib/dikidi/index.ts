@@ -15,3 +15,5 @@ export {
   createRecord,
 } from "./widget";
 export { getWidgetSession } from "./session";
+export { fetchBeautyCompany } from "./beauty";
+export type { CompanyContacts } from "./beauty";
