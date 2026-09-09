@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatPrice, type Master, type Service } from "@/lib/data";
 
@@ -171,7 +171,9 @@ export default function BookingForm() {
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [masters, setMasters] = useState<Master[]>([]);
+  const [servicesMasterId, setServicesMasterId] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const slotsGenRef = useRef(0);
 
   const [serviceId, setServiceId] = useState("");
   const [masterId, setMasterId] = useState("");
@@ -272,6 +274,16 @@ export default function BookingForm() {
   useEffect(() => {
     if (!masterId) return;
     let cancelled = false;
+    // Invalidate until this master's services arrive — avoids slots for the previous service.
+    setServicesMasterId("");
+    setShowCalendar(false);
+    setNoSlotsWarn(false);
+    setDatesTrue([]);
+    setTimes([]);
+    setTime("");
+    setDate("");
+    setStatus("idle");
+    setMessage("");
     (async () => {
       try {
         const res = await fetch(
@@ -295,6 +307,7 @@ export default function BookingForm() {
           }
           return list[0]?.id || "";
         });
+        setServicesMasterId(masterId);
       } catch {
         /* keep previous */
       }
@@ -305,11 +318,18 @@ export default function BookingForm() {
   }, [masterId, serviceFromQuery]);
 
   const loadSlots = useCallback(
-    async (sid: string, mid: string, d?: string, opts?: { fromPick?: boolean }) => {
+    async (
+      sid: string,
+      mid: string,
+      d?: string,
+      opts?: { fromPick?: boolean; gen?: number }
+    ) => {
       if (!sid || !mid) return;
+      const gen = opts?.gen ?? ++slotsGenRef.current;
       setSlotsLoading(true);
       setMessage("");
       setNoSlotsWarn(false);
+      const isStale = () => gen !== slotsGenRef.current;
       try {
         const fetchOnce = async (dateParam?: string) => {
           const q = new URLSearchParams({ serviceId: sid, masterId: mid });
@@ -359,6 +379,8 @@ export default function BookingForm() {
           forDay = slotTimes.filter((t) => t.startsWith(nextDate));
         }
 
+        if (isStale()) return;
+
         setDate(nextDate);
         setTimes(forDay);
         setTime((prev) =>
@@ -375,7 +397,7 @@ export default function BookingForm() {
             setNoSlotsWarn(true);
           }
         } else if (!d) {
-          // Auto after service/master change
+          // Auto after service/master change — only open calendar when settled empty
           if (!nextDate || dates.length === 0) {
             setShowCalendar(true);
             setNoSlotsWarn(false);
@@ -391,14 +413,16 @@ export default function BookingForm() {
           setNoSlotsWarn(true);
         }
       } catch (err) {
+        if (isStale()) return;
         setDatesTrue([]);
         setTimes([]);
         setTime("");
-        setShowCalendar(true);
+        // Don't flash the month calendar on transient master/service mismatches
+        setShowCalendar(false);
         setStatus("error");
         setMessage(err instanceof Error ? err.message : "Ошибка слотов");
       } finally {
-        setSlotsLoading(false);
+        if (!isStale()) setSlotsLoading(false);
       }
     },
     []
@@ -407,13 +431,20 @@ export default function BookingForm() {
   // After service+master chosen — fetch availability (dates_true)
   useEffect(() => {
     if (!serviceId || !masterId || step !== "slot") return;
+    // Wait until services list belongs to this master (prevents makeup+Zhanna race)
+    if (servicesMasterId !== masterId) return;
+    if (!services.some((s) => s.id === serviceId)) return;
+
     setDate("");
     setTime("");
     setTimes([]);
     setShowCalendar(false);
     setNoSlotsWarn(false);
-    void loadSlots(serviceId, masterId);
-  }, [serviceId, masterId, loadSlots, step]);
+    setStatus("idle");
+    setMessage("");
+    const gen = ++slotsGenRef.current;
+    void loadSlots(serviceId, masterId, undefined, { gen });
+  }, [serviceId, masterId, servicesMasterId, services, loadSlots, step]);
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
@@ -745,7 +776,7 @@ export default function BookingForm() {
       {serviceId && masterId ? (
         <>
           {/* Compact A: selected date line */}
-          {!showCalendar && date ? (
+          {!showCalendar && !slotsLoading && date ? (
             <div className="w-full text-center">
               <p className="text-sm font-light text-white">
                 {formatSelectedDate(date)}
@@ -761,8 +792,14 @@ export default function BookingForm() {
             </div>
           ) : null}
 
-          {/* Month calendar B */}
-          {showCalendar ? (
+          {slotsLoading && !showCalendar ? (
+            <p className="w-full text-center text-sm font-light text-white/40">
+              …
+            </p>
+          ) : null}
+
+          {/* Month calendar B — hide while loading to avoid flash on master switch */}
+          {showCalendar && !slotsLoading ? (
             <div className="sn-calendar-enter w-full">
               <p className="mb-5 text-center text-xs font-light tracking-label text-white/60">
                 КАЛЕНДАРЬ
