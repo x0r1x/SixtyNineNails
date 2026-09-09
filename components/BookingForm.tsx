@@ -215,66 +215,45 @@ export default function BookingForm() {
         if (cancelled) return;
         const svcList = (svcJson.services || []) as Service[];
         const mstList = (mstJson.masters || []) as Master[];
-        setServices(svcList);
-        setCategories(
-          (svcJson.categories as string[]) ||
-            [...new Set(svcList.map((s) => s.category))]
-        );
+        // Masters list stays full — services are filtered by the selected master.
         setMasters(mstList);
+
         const preferredMaster =
           masterFromQuery && mstList.some((m) => m.id === masterFromQuery)
             ? masterFromQuery
-            : "";
+            : mstList[0]?.id || "";
 
         let preferredService =
           serviceFromQuery && svcList.some((s) => s.id === serviceFromQuery)
             ? serviceFromQuery
             : "";
 
-        // Master deep-link (e.g. Varvara/визажист): pick a service she actually does.
-        // Otherwise defaulting to svcList[0] (often manicure) drops the master and 400s slots.
-        if (preferredMaster && !preferredService) {
-          try {
-            const forMasterRes = await fetch(
-              "/api/services?masterId=" + encodeURIComponent(preferredMaster)
-            );
-            const forMasterJson = await forMasterRes.json();
-            const masterSvcs = (forMasterJson.services || []) as Service[];
-            if (masterSvcs.length) {
-              preferredService = masterSvcs[0].id;
-            }
-          } catch {
-            /* fall through */
-          }
-        }
-
-        if (!preferredService) {
-          preferredService = svcList[0]?.id || "";
-        }
-
-        // If both query params conflict (master cannot do service), prefer master.
-        if (preferredMaster && preferredService && serviceFromQuery) {
+        // Deep-link from /uslugi?service=… without master: pick a master who does it.
+        if (preferredService && !(masterFromQuery && preferredMaster === masterFromQuery)) {
           try {
             const check = await fetch(
               "/api/masters?serviceId=" + encodeURIComponent(preferredService)
             );
             const checkJson = await check.json();
             const forSvc = (checkJson.masters || []) as Master[];
-            if (!forSvc.some((m) => m.id === preferredMaster)) {
-              const forMasterRes = await fetch(
-                "/api/services?masterId=" + encodeURIComponent(preferredMaster)
-              );
-              const forMasterJson = await forMasterRes.json();
-              const masterSvcs = (forMasterJson.services || []) as Service[];
-              if (masterSvcs.length) preferredService = masterSvcs[0].id;
+            if (forSvc.length) {
+              const keep =
+                preferredMaster && forSvc.some((m) => m.id === preferredMaster)
+                  ? preferredMaster
+                  : forSvc[0].id;
+              setMasterId(keep);
+              setCatalogLoading(false);
+              // serviceId set below after master-driven filter; seed preference
+              setServiceId(preferredService);
+              return;
             }
           } catch {
-            /* keep preferredService */
+            /* fall through */
           }
         }
 
-        setServiceId(preferredService);
-        setMasterId(preferredMaster || mstList[0]?.id || "");
+        setMasterId(preferredMaster);
+        if (preferredService) setServiceId(preferredService);
       } catch {
         if (!cancelled) {
           setStatus("error");
@@ -289,23 +268,33 @@ export default function BookingForm() {
     };
   }, [masterFromQuery, serviceFromQuery]);
 
+  // Service dropdown: only what the selected master performs.
   useEffect(() => {
-    if (!serviceId) return;
+    if (!masterId) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch(
-          "/api/masters?serviceId=" + encodeURIComponent(serviceId)
+          "/api/services?masterId=" + encodeURIComponent(masterId)
         );
         const data = await res.json();
         if (cancelled) return;
-        const list = (data.masters || []) as Master[];
-        if (list.length) {
-          setMasters(list);
-          setMasterId((prev) =>
-            list.some((m) => m.id === prev) ? prev : list[0].id
-          );
-        }
+        const list = (data.services || []) as Service[];
+        setServices(list);
+        setCategories(
+          (data.categories as string[]) ||
+            [...new Set(list.map((s) => s.category))]
+        );
+        setServiceId((prev) => {
+          if (prev && list.some((s) => s.id === prev)) return prev;
+          if (
+            serviceFromQuery &&
+            list.some((s) => s.id === serviceFromQuery)
+          ) {
+            return serviceFromQuery;
+          }
+          return list[0]?.id || "";
+        });
       } catch {
         /* keep previous */
       }
@@ -313,7 +302,7 @@ export default function BookingForm() {
     return () => {
       cancelled = true;
     };
-  }, [serviceId]);
+  }, [masterId, serviceFromQuery]);
 
   const loadSlots = useCallback(
     async (sid: string, mid: string, d?: string, opts?: { fromPick?: boolean }) => {
