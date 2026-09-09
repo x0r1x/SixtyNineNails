@@ -11,7 +11,7 @@ import {
 
 const EASE = "cubic-bezier(0.45, 0.05, 0.55, 0.95)";
 const DURATION = "2s";
-const HEADER_SIZE = 72;
+const HEADER_SIZE = 44;
 
 const navLinks = [
   { href: "/uslugi", label: "Услуги" },
@@ -153,10 +153,10 @@ export default function HomeSplash() {
         }`}
         aria-hidden={!open && !reduceMotion}
       >
-        <header className="relative z-20 flex w-full items-center justify-between px-6 py-6 md:px-12">
+        <header className="relative z-20 flex w-full items-center justify-between px-5 py-4 md:px-12 md:py-6">
           <div
             ref={slotRef}
-            className="sn-logo-slot h-[72px] w-[72px] shrink-0"
+            className="sn-logo-slot h-11 w-11 shrink-0 md:h-[72px] md:w-[72px]"
             aria-hidden
           />
           <nav className="flex items-center gap-3 text-sm font-light tracking-nav text-white md:gap-4 md:text-base">

@@ -17,14 +17,14 @@ export default function Header() {
   if (pathname === "/") return null;
 
   return (
-    <header className="relative z-20 flex w-full items-center justify-between px-6 py-6 md:px-12">
+    <header className="relative z-20 flex w-full items-center justify-between px-5 py-4 md:px-12 md:py-6">
       <Link href="/" className="shrink-0" aria-label="SixtyNineNails — главная">
         <Image
           src="/logo-small.png"
           alt="SixtyNineNails"
           width={72}
           height={72}
-          className="h-[72px] w-[72px] object-contain"
+          className="h-11 w-11 object-contain md:h-[72px] md:w-[72px]"
           priority
         />
       </Link>
