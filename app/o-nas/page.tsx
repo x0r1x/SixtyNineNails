@@ -20,139 +20,139 @@ export default async function AboutPage() {
       ? `https://yandex.ru/map-widget/v1/?ll=${company.lng}%2C${company.lat}&z=16&pt=${company.lng},${company.lat},pm2rdm&l=map`
       : null;
 
+  const socials = [
+    ...(company?.whatsappUrl
+      ? [{ label: "WhatsApp", href: company.whatsappUrl }]
+      : []),
+    ...(company?.links || []).map((l) => ({ label: l.title, href: l.url })),
+  ];
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 pb-20 pt-10">
-      <h1 className="sn-reveal mb-12 text-4xl font-extralight tracking-display text-white md:mb-14 md:text-5xl">
+      <h1 className="sn-reveal mb-10 text-4xl font-extralight tracking-display text-white md:text-5xl">
         О нас
       </h1>
 
-      <div className="w-full max-w-xl space-y-6 text-center">
-        <p
-          className="sn-reveal text-sm font-light leading-relaxed tracking-[0.04em] text-white/75 md:text-base"
+      <div className="w-full max-w-xl space-y-12">
+        <section
+          className="sn-reveal"
           style={{ ["--sn-delay" as string]: "60ms" }}
         >
-          Sixty Nine Nails — студия ногтевого сервиса, визажа и бровей. Спокойный
-          ритм, внимание к форме и деталям.
-        </p>
-        {company?.description ? (
-          <p
-            className="sn-reveal text-xs font-light tracking-[0.12em] text-white/45"
-            style={{ ["--sn-delay" as string]: "110ms" }}
-          >
-            {company.description}
+          <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
+            студия
+          </h2>
+          <p className="text-sm font-light leading-relaxed text-white/80 md:text-base">
+            Sixty Nine Nails — ногтевой сервис, визаж и брови. Спокойный ритм и
+            внимание к форме и деталям.
           </p>
-        ) : null}
-        {company?.scheduleLabel ? (
-          <p
-            className="sn-reveal text-xs font-light tracking-[0.16em] text-white/55"
-            style={{ ["--sn-delay" as string]: "140ms" }}
-          >
-            {company.scheduleLabel}
-          </p>
-        ) : null}
-      </div>
+          {company?.description ? (
+            <p className="mt-3 text-sm font-light text-white/50">
+              {company.description}
+            </p>
+          ) : null}
+        </section>
 
-      <div className="mt-12 w-full max-w-xl space-y-5 text-center">
-        {company?.addressLine ? (
-          <div
-            className="sn-reveal-stagger space-y-1"
+        <section
+          className="sn-reveal"
+          style={{ ["--sn-delay" as string]: "120ms" }}
+        >
+          <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
+            контакты
+          </h2>
+          <ul>
+            {company?.addressLine ? (
+              <li className="sn-row border-b border-white/15 px-1 py-4">
+                <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
+                  адрес
+                </p>
+                <p className="mt-1 text-sm font-light text-white md:text-base">
+                  {company.addressLine}
+                </p>
+              </li>
+            ) : null}
+            {phone && telHref ? (
+              <li className="border-b border-white/15 px-1 py-4">
+                <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
+                  телефон
+                </p>
+                <a
+                  href={telHref}
+                  className="mt-1 inline-block text-sm font-light text-white hover:text-burgundy md:text-base"
+                >
+                  {phone}
+                </a>
+              </li>
+            ) : null}
+            {company?.scheduleLabel ? (
+              <li className="border-b border-white/15 px-1 py-4">
+                <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
+                  часы
+                </p>
+                <p className="mt-1 text-sm font-light text-white md:text-base">
+                  {company.scheduleLabel}
+                </p>
+              </li>
+            ) : null}
+            {socials.length > 0 ? (
+              <li className="border-b border-white/15 px-1 py-4">
+                <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
+                  связь
+                </p>
+                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+                  {socials.map((s) => (
+                    <a
+                      key={s.href}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="sn-link-burgundy text-sm font-light text-burgundy"
+                    >
+                      {s.label}
+                    </a>
+                  ))}
+                </div>
+              </li>
+            ) : null}
+          </ul>
+        </section>
+
+        {mapSrc ? (
+          <section
+            className="sn-reveal"
             style={{ ["--sn-delay" as string]: "180ms" }}
           >
-            <p className="text-[10px] font-light uppercase tracking-[0.22em] text-white/40">
-              адрес
-            </p>
-            <p className="text-sm font-light tracking-[0.06em] text-white/85 md:text-base">
-              {company.addressLine}
-            </p>
-          </div>
+            <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
+              на карте
+            </h2>
+            <div className="overflow-hidden border border-white/15">
+              <iframe
+                title="Карта — SixtyNineNails"
+                src={mapSrc}
+                className="h-64 w-full border-0 md:h-72"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </section>
         ) : null}
-
-        {phone && telHref ? (
-          <div
-            className="sn-reveal-stagger space-y-1"
-            style={{ ["--sn-delay" as string]: "240ms" }}
-          >
-            <p className="text-[10px] font-light uppercase tracking-[0.22em] text-white/40">
-              телефон
-            </p>
-            <a
-              href={telHref}
-              className="sn-link-burgundy text-sm font-light tracking-[0.08em] text-white hover:text-burgundy md:text-base"
-            >
-              {phone}
-            </a>
-          </div>
-        ) : null}
-
-        <div
-          className="sn-reveal-stagger flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-2"
-          style={{ ["--sn-delay" as string]: "300ms" }}
-        >
-          {company?.whatsappUrl ? (
-            <a
-              href={company.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sn-link-burgundy text-xs font-light tracking-[0.14em] text-burgundy"
-            >
-              WhatsApp
-            </a>
-          ) : null}
-          {company?.links.map((l) => (
-            <a
-              key={l.url}
-              href={l.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sn-link-burgundy text-xs font-light tracking-[0.14em] text-burgundy"
-            >
-              {l.title}
-            </a>
-          ))}
-          {company?.dikidiUrl ? (
-            <a
-              href={company.dikidiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sn-link-burgundy text-xs font-light tracking-[0.14em] text-burgundy"
-            >
-              Dikidi
-            </a>
-          ) : null}
-        </div>
       </div>
 
-      {mapSrc ? (
-        <div
-          className="sn-reveal mt-14 w-full max-w-3xl overflow-hidden rounded-sm border border-white/15"
-          style={{ ["--sn-delay" as string]: "360ms" }}
-        >
-          <iframe
-            title="Карта — SixtyNineNails"
-            src={mapSrc}
-            className="h-64 w-full border-0 md:h-80"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        </div>
-      ) : null}
-
       <div
-        className="sn-reveal mt-14 flex flex-col items-center gap-4"
-        style={{ ["--sn-delay" as string]: "420ms" }}
+        className="sn-reveal mt-14 flex flex-col items-center gap-3"
+        style={{ ["--sn-delay" as string]: "240ms" }}
       >
         <Link
           href="/zapis"
-          className="sn-btn border border-burgundy bg-burgundy px-14 py-3 text-xs font-light tracking-label text-white hover:brightness-110 md:text-sm"
+          className="sn-link-burgundy text-sm font-light text-burgundy"
         >
-          записаться
+          Записаться →
         </Link>
         <Link
           href="/mastera"
-          className="sn-link-burgundy text-xs font-light tracking-wide text-burgundy"
+          className="text-xs font-light tracking-wide text-white/45 hover:text-white/70"
         >
-          посмотреть мастеров
+          мастера
         </Link>
       </div>
     </div>
