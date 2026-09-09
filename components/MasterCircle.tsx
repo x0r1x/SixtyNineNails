@@ -22,36 +22,31 @@ export default function MasterCircle({
     size === "lg" ? "h-40 w-40 md:h-44 md:w-44" : "h-24 w-24 md:h-28 md:w-28";
   const px = size === "lg" ? 176 : 112;
 
-  const photo = (
-    <div
-      className={`sn-master-ring relative overflow-hidden rounded-full border border-white/80 bg-white/5 ${dim}`}
-    >
-      {image ? (
-        <Image
-          src={image}
-          alt={name}
-          width={px}
-          height={px}
-          className="h-full w-full object-cover"
-          unoptimized
-        />
-      ) : null}
-    </div>
-  );
-
   return (
     <div className="sn-master flex flex-col items-center gap-3 text-center">
-      {chooseHref ? (
-        <Link
-          href={chooseHref}
-          className="rounded-full outline-none transition-opacity hover:opacity-90 focus-visible:ring-1 focus-visible:ring-burgundy"
-          aria-label={`Выбрать мастера ${name}`}
+      <div className={`relative ${dim}`}>
+        <div
+          className={`sn-master-ring relative h-full w-full overflow-hidden rounded-full border border-white/80 bg-white/5`}
         >
-          {photo}
-        </Link>
-      ) : (
-        photo
-      )}
+          {image ? (
+            <Image
+              src={image}
+              alt={name}
+              width={px}
+              height={px}
+              className="h-full w-full object-cover"
+              unoptimized
+            />
+          ) : null}
+        </div>
+        {chooseHref ? (
+          <Link
+            href={chooseHref}
+            className="absolute inset-0 z-10 rounded-full outline-none focus-visible:ring-1 focus-visible:ring-burgundy"
+            aria-label={`Выбрать мастера ${name}`}
+          />
+        ) : null}
+      </div>
       <div className="space-y-1">
         <p
           className={`font-light tracking-[0.18em] text-white ${
