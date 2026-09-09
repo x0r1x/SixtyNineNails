@@ -87,3 +87,26 @@ export async function fetchBeautyMastersForService(
     image: masterImageUrl(m),
   }));
 }
+
+export async function fetchBeautyServicesForMaster(
+  masterId: string
+): Promise<Service[]> {
+  const all = await fetchBeautyServices();
+  const mid = String(masterId);
+  const matched: Service[] = [];
+  await Promise.all(
+    all.map(async (svc) => {
+      try {
+        const masters = await fetchBeautyMastersForService(svc.id);
+        if (masters.some((m) => m.id === mid)) matched.push(svc);
+      } catch {
+        /* skip service on error */
+      }
+    })
+  );
+  // Keep catalog order
+  const order = new Map(all.map((s, i) => [s.id, i]));
+  matched.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  return matched;
+}
+

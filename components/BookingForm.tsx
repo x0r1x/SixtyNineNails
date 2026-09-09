@@ -221,16 +221,60 @@ export default function BookingForm() {
             [...new Set(svcList.map((s) => s.category))]
         );
         setMasters(mstList);
-        const preferredService =
-          serviceFromQuery && svcList.some((s) => s.id === serviceFromQuery)
-            ? serviceFromQuery
-            : svcList[0]?.id || "";
-        setServiceId(preferredService);
-        const preferred =
+        const preferredMaster =
           masterFromQuery && mstList.some((m) => m.id === masterFromQuery)
             ? masterFromQuery
-            : mstList[0]?.id || "";
-        setMasterId(preferred);
+            : "";
+
+        let preferredService =
+          serviceFromQuery && svcList.some((s) => s.id === serviceFromQuery)
+            ? serviceFromQuery
+            : "";
+
+        // Master deep-link (e.g. Varvara/визажист): pick a service she actually does.
+        // Otherwise defaulting to svcList[0] (often manicure) drops the master and 400s slots.
+        if (preferredMaster && !preferredService) {
+          try {
+            const forMasterRes = await fetch(
+              "/api/services?masterId=" + encodeURIComponent(preferredMaster)
+            );
+            const forMasterJson = await forMasterRes.json();
+            const masterSvcs = (forMasterJson.services || []) as Service[];
+            if (masterSvcs.length) {
+              preferredService = masterSvcs[0].id;
+            }
+          } catch {
+            /* fall through */
+          }
+        }
+
+        if (!preferredService) {
+          preferredService = svcList[0]?.id || "";
+        }
+
+        // If both query params conflict (master cannot do service), prefer master.
+        if (preferredMaster && preferredService && serviceFromQuery) {
+          try {
+            const check = await fetch(
+              "/api/masters?serviceId=" + encodeURIComponent(preferredService)
+            );
+            const checkJson = await check.json();
+            const forSvc = (checkJson.masters || []) as Master[];
+            if (!forSvc.some((m) => m.id === preferredMaster)) {
+              const forMasterRes = await fetch(
+                "/api/services?masterId=" + encodeURIComponent(preferredMaster)
+              );
+              const forMasterJson = await forMasterRes.json();
+              const masterSvcs = (forMasterJson.services || []) as Service[];
+              if (masterSvcs.length) preferredService = masterSvcs[0].id;
+            }
+          } catch {
+            /* keep preferredService */
+          }
+        }
+
+        setServiceId(preferredService);
+        setMasterId(preferredMaster || mstList[0]?.id || "");
       } catch {
         if (!cancelled) {
           setStatus("error");
