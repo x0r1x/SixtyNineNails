@@ -16,6 +16,7 @@ const HEADER_SIZE = 44;
 const navLinks = [
   { href: "/uslugi", label: "Услуги" },
   { href: "/mastera", label: "Мастера" },
+  { href: "/o-nas", label: "О нас" },
   { href: "/zapis", label: "Запись" },
 ];
 
