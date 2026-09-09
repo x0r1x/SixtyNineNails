@@ -51,7 +51,7 @@ function timeLabel(full: string): string {
 function buildMonthGrid(year: number, month: number): (string | null)[] {
   const first = new Date(year, month, 1);
   // JS getDay: 0=Sun … convert to Mon=0
-  let startPad = (first.getDay() + 6) % 7;
+  const startPad = (first.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells: (string | null)[] = [];
   for (let i = 0; i < startPad; i++) cells.push(null);

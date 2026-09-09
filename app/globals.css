@@ -1,6 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-burgundy: #7A1F2B;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --tracking-display: 0.1em;
+  --tracking-nav: 0.2em;
+  --tracking-label: 0.22em;
+}
 
 :root {
   --burgundy: #7A1F2B;
