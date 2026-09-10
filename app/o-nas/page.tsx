@@ -3,6 +3,11 @@ import { fetchBeautyCompany } from "@/lib/dikidi";
 
 export const dynamic = "force-dynamic";
 
+const SOCIAL_LINKS = [
+  { label: "Telegram", href: "https://t.me/SixtyNineNails" },
+  { label: "ВКонтакте", href: "https://m.vk.ru/club217259252" },
+] as const;
+
 export default async function AboutPage() {
   let company: Awaited<ReturnType<typeof fetchBeautyCompany>> | null = null;
   try {
@@ -15,15 +20,22 @@ export default async function AboutPage() {
   const telHref = phone
     ? "tel:" + phone.replace(/[^\d+]/g, "")
     : undefined;
-  const mapSrc =
-    company?.lat != null && company?.lng != null
-      ? `https://yandex.ru/map-widget/v1/?ll=${company.lng}%2C${company.lat}&z=16&pt=${company.lng},${company.lat},pm2rdm&l=map`
-      : null;
+
+  const lat = company?.lat;
+  const lng = company?.lng;
+  const hasCoords = lat != null && lng != null;
+  const staticMapSrc = hasCoords
+    ? `https://static-maps.yandex.ru/1.x/?ll=${lng},${lat}&size=650,450&z=16&l=map&pt=${lng},${lat},pm2rdm&lang=ru_RU`
+    : null;
+  const yandexMapsUrl = hasCoords
+    ? `https://yandex.ru/maps/?pt=${lng},${lat}&z=16&l=map`
+    : null;
 
   const socials = [
     ...(company?.whatsappUrl
       ? [{ label: "WhatsApp", href: company.whatsappUrl }]
       : []),
+    ...SOCIAL_LINKS,
     ...(company?.links || []).map((l) => ({ label: l.title, href: l.url })),
   ];
 
@@ -61,7 +73,7 @@ export default async function AboutPage() {
           </h2>
           <ul>
             {company?.addressLine ? (
-              <li className="sn-row border-b border-white/15 px-1 py-4">
+              <li className="border-b border-white/15 px-1 py-4">
                 <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
                   адрес
                 </p>
@@ -116,7 +128,7 @@ export default async function AboutPage() {
           </ul>
         </section>
 
-        {mapSrc ? (
+        {staticMapSrc && yandexMapsUrl ? (
           <section
             className="sn-reveal"
             style={{ ["--sn-delay" as string]: "180ms" }}
@@ -124,16 +136,30 @@ export default async function AboutPage() {
             <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
               на карте
             </h2>
-            <div className="overflow-hidden border border-white/15">
-              <iframe
-                title="Карта — SixtyNineNails"
-                src={mapSrc}
-                className="h-64 w-full border-0 md:h-72"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
+            <a
+              href={yandexMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block overflow-hidden border border-white/15 transition hover:border-white/30"
+              aria-label="Открыть адрес в Яндекс.Картах"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={staticMapSrc}
+                alt="SixtyNineNails на карте"
+                width={650}
+                height={450}
+                className="h-auto w-full object-cover"
               />
-            </div>
+            </a>
+            <a
+              href={yandexMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sn-link-burgundy mt-3 inline-block text-xs font-light text-burgundy"
+            >
+              открыть в Яндекс.Картах →
+            </a>
           </section>
         ) : null}
       </div>
