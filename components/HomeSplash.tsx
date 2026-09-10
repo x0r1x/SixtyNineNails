@@ -154,17 +154,20 @@ export default function HomeSplash() {
         }`}
         aria-hidden={!open && !reduceMotion}
       >
-        <header className="relative z-20 flex w-full items-center justify-between px-5 py-4 md:px-12 md:py-6">
+        <header className="relative z-20 flex w-full items-center gap-3 px-4 py-4 md:gap-6 md:px-12 md:py-6">
           <div
             ref={slotRef}
             className="sn-logo-slot h-11 w-11 shrink-0 md:h-[72px] md:w-[72px]"
             aria-hidden
           />
-          <nav className="flex items-center gap-3 text-sm font-light tracking-nav text-white md:gap-4 md:text-base">
+          <nav
+            className="sn-header-nav flex min-w-0 flex-1 items-center gap-3 overflow-x-auto text-sm font-light tracking-nav text-white md:justify-end md:gap-4 md:overflow-visible md:text-base"
+            aria-label="Основное меню"
+          >
             {navLinks.map((link, i) => (
               <span
                 key={link.href}
-                className="sn-home-nav-item flex items-center gap-3 md:gap-4"
+                className="sn-home-nav-item flex shrink-0 items-center gap-3 md:gap-4"
                 style={{ ["--sn-nav-i" as string]: String(i) }}
               >
                 {i > 0 && (
@@ -174,7 +177,7 @@ export default function HomeSplash() {
                 )}
                 <Link
                   href={link.href}
-                  className="sn-nav-link border-b border-transparent pb-0.5 text-white/90 hover:border-burgundy hover:text-white"
+                  className="sn-nav-link whitespace-nowrap border-b border-transparent pb-0.5 text-white/90 hover:border-burgundy hover:text-white"
                   tabIndex={open || reduceMotion ? undefined : -1}
                 >
                   {link.label}
