@@ -8,6 +8,7 @@ const links = [
   { href: "/uslugi", label: "Услуги" },
   { href: "/mastera", label: "Мастера" },
   { href: "/zapis", label: "Запись" },
+  { href: "/o-nas", label: "О нас" },
 ];
 
 export default function Header() {

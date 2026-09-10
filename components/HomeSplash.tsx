@@ -17,6 +17,7 @@ const navLinks = [
   { href: "/uslugi", label: "Услуги" },
   { href: "/mastera", label: "Мастера" },
   { href: "/zapis", label: "Запись" },
+  { href: "/o-nas", label: "О нас" },
 ];
 
 function splashSize() {
