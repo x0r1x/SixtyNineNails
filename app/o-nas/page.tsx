@@ -1,12 +1,9 @@
 import Link from "next/link";
+import SocialLinks from "@/components/SocialLinks";
 import { fetchBeautyCompany } from "@/lib/dikidi";
+import { SALON } from "@/lib/salon";
 
 export const dynamic = "force-dynamic";
-
-const SOCIAL_LINKS = [
-  { label: "Telegram", href: "https://t.me/SixtyNineNails" },
-  { label: "ВКонтакте", href: "https://m.vk.ru/club217259252" },
-] as const;
 
 export default async function AboutPage() {
   let company: Awaited<ReturnType<typeof fetchBeautyCompany>> | null = null;
@@ -21,21 +18,16 @@ export default async function AboutPage() {
     ? "tel:" + phone.replace(/[^\d+]/g, "")
     : undefined;
 
-  const lat = company?.lat;
-  const lng = company?.lng;
-  const hasCoords = lat != null && lng != null;
-  const staticMapSrc = hasCoords
-    ? `https://static-maps.yandex.ru/1.x/?ll=${lng},${lat}&size=650,450&z=16&l=map&pt=${lng},${lat},pm2rdm&lang=ru_RU`
-    : null;
-  const yandexMapsUrl = hasCoords
-    ? `https://yandex.ru/maps/?pt=${lng},${lat}&z=16&l=map`
-    : null;
+  const { lat, lng } = SALON;
+  const staticMapSrc = `https://static-maps.yandex.ru/1.x/?ll=${lng},${lat}&size=650,450&z=17&l=map&pt=${lng},${lat},pm2rdm&lang=ru_RU`;
+  const mapsUrl = SALON.yandexOrgUrl;
 
   const socials = [
     ...(company?.whatsappUrl
       ? [{ label: "WhatsApp", href: company.whatsappUrl }]
       : []),
-    ...SOCIAL_LINKS,
+    { label: "Telegram", href: SALON.telegram },
+    { label: "ВКонтакте", href: SALON.vk },
     ...(company?.links || []).map((l) => ({ label: l.title, href: l.url })),
   ];
 
@@ -72,16 +64,14 @@ export default async function AboutPage() {
             контакты
           </h2>
           <ul>
-            {company?.addressLine ? (
-              <li className="border-b border-white/15 px-1 py-4">
-                <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
-                  адрес
-                </p>
-                <p className="mt-1 text-sm font-light text-white md:text-base">
-                  {company.addressLine}
-                </p>
-              </li>
-            ) : null}
+            <li className="border-b border-white/15 px-1 py-4">
+              <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
+                адрес
+              </p>
+              <p className="mt-1 text-sm font-light text-white md:text-base">
+                {SALON.address}
+              </p>
+            </li>
             {phone && telHref ? (
               <li className="border-b border-white/15 px-1 py-4">
                 <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
@@ -110,58 +100,44 @@ export default async function AboutPage() {
                 <p className="text-[11px] font-light tracking-[0.16em] text-white/45">
                   связь
                 </p>
-                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                  {socials.map((s) => (
-                    <a
-                      key={s.href}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="sn-link-burgundy text-sm font-light text-burgundy"
-                    >
-                      {s.label}
-                    </a>
-                  ))}
-                </div>
+                <SocialLinks items={socials} />
               </li>
             ) : null}
           </ul>
         </section>
 
-        {staticMapSrc && yandexMapsUrl ? (
-          <section
-            className="sn-reveal"
-            style={{ ["--sn-delay" as string]: "180ms" }}
+        <section
+          className="sn-reveal"
+          style={{ ["--sn-delay" as string]: "180ms" }}
+        >
+          <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
+            на карте
+          </h2>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block overflow-hidden border border-white/15 transition hover:border-white/30"
+            aria-label="Открыть SixtyNineNails в Яндекс.Картах"
           >
-            <h2 className="mb-3 text-xs font-light uppercase tracking-[0.25em] text-burgundy">
-              на карте
-            </h2>
-            <a
-              href={yandexMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block overflow-hidden border border-white/15 transition hover:border-white/30"
-              aria-label="Открыть адрес в Яндекс.Картах"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={staticMapSrc}
-                alt="SixtyNineNails на карте"
-                width={650}
-                height={450}
-                className="h-auto w-full object-cover"
-              />
-            </a>
-            <a
-              href={yandexMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sn-link-burgundy mt-3 inline-block text-xs font-light text-burgundy"
-            >
-              открыть в Яндекс.Картах →
-            </a>
-          </section>
-        ) : null}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={staticMapSrc}
+              alt="SixtyNineNails — Скандинавский бульвар, 5, корп. 1"
+              width={650}
+              height={450}
+              className="h-auto w-full object-cover"
+            />
+          </a>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sn-link-burgundy mt-3 inline-block text-xs font-light text-burgundy"
+          >
+            открыть в Яндекс.Картах →
+          </a>
+        </section>
       </div>
 
       <div
