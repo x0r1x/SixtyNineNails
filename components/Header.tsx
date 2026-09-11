@@ -18,7 +18,7 @@ export default function Header() {
   if (pathname === "/") return null;
 
   return (
-    <header className="relative z-20 flex w-full items-center justify-between px-5 py-4 md:px-12 md:py-6">
+    <header className="relative z-20 flex w-full items-center gap-3 px-4 py-4 md:gap-6 md:px-12 md:py-6">
       <Link href="/" className="shrink-0" aria-label="SixtyNineNails — главная">
         <Image
           src="/logo-small.png"
@@ -29,12 +29,18 @@ export default function Header() {
           priority
         />
       </Link>
-      <nav className="flex items-center gap-3 text-sm font-light tracking-nav text-white md:gap-4 md:text-base">
+      <nav
+        className="sn-header-nav flex min-w-0 flex-1 items-center gap-3 overflow-x-auto text-sm font-light tracking-nav text-white md:justify-end md:gap-4 md:overflow-visible md:text-base"
+        aria-label="Основное меню"
+      >
         {links.map((link, i) => {
           const active =
             pathname === link.href || pathname.startsWith(link.href + "/");
           return (
-            <span key={link.href} className="flex items-center gap-3 md:gap-4">
+            <span
+              key={link.href}
+              className="flex shrink-0 items-center gap-3 md:gap-4"
+            >
               {i > 0 && (
                 <span className="text-[10px] text-white/70" aria-hidden>
                   •
@@ -44,8 +50,8 @@ export default function Header() {
                 href={link.href}
                 className={
                   active
-                    ? "sn-nav-link border-b border-burgundy pb-0.5 text-white"
-                    : "sn-nav-link border-b border-transparent pb-0.5 text-white/90 hover:border-burgundy hover:text-white"
+                    ? "sn-nav-link whitespace-nowrap border-b border-burgundy pb-0.5 text-white"
+                    : "sn-nav-link whitespace-nowrap border-b border-transparent pb-0.5 text-white/90 hover:border-burgundy hover:text-white"
                 }
               >
                 {link.label}
