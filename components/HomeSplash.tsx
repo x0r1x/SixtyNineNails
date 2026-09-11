@@ -25,12 +25,9 @@ function splashSize() {
   return Math.min(window.innerWidth * 0.82, 560);
 }
 
-function splashTransform(slotLeft: number, slotTop: number, size: number) {
-  const scale = splashSize() / size;
-  const visual = size * scale;
-  const tx = (window.innerWidth - visual) / 2 - slotLeft;
-  const ty = (window.innerHeight - visual) / 2 - slotTop;
-  return `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
+/** Keep fly laid out at splash CSS size so the bitmap stays sharp (no upscale soap). */
+function splashLayoutSize() {
+  return splashSize();
 }
 
 export default function HomeSplash() {
@@ -51,14 +48,16 @@ export default function HomeSplash() {
     if (!slot || !fly) return;
 
     const rect = slot.getBoundingClientRect();
-    const left = rect.left;
-    const top = rect.top;
-    const size = rect.width || HEADER_SIZE;
+    const headerSize = rect.width || HEADER_SIZE;
+    const splash = splashLayoutSize();
 
-    fly.style.left = `${left}px`;
-    fly.style.top = `${top}px`;
-    fly.style.width = `${size}px`;
-    fly.style.height = `${size}px`;
+    // Layout at splash size (sharp). Header is scale-down via transform — never scale-up.
+    const splashLeft = (window.innerWidth - splash) / 2;
+    const splashTop = (window.innerHeight - splash) / 2;
+    fly.style.width = `${splash}px`;
+    fly.style.height = `${splash}px`;
+    fly.style.left = `${splashLeft}px`;
+    fly.style.top = `${splashTop}px`;
 
     if (instant) {
       fly.style.transition = "none";
@@ -66,10 +65,14 @@ export default function HomeSplash() {
       fly.style.transition = `transform ${DURATION} ${EASE}`;
     }
 
-    fly.style.transform =
-      mode === "splash"
-        ? splashTransform(left, top, size)
-        : "translate3d(0, 0, 0) scale(1)";
+    if (mode === "splash") {
+      fly.style.transform = "translate3d(0, 0, 0) scale(1)";
+    } else {
+      const scale = headerSize / splash;
+      const tx = rect.left - splashLeft;
+      const ty = rect.top - splashTop;
+      fly.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
+    }
 
     if (instant) {
       void fly.offsetWidth;
@@ -134,10 +137,14 @@ export default function HomeSplash() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-large.png"
+          srcSet="/logo-medium.png 1024w, /logo-large.png 2048w"
+          sizes="min(82vw, 560px)"
           alt=""
           width={2048}
           height={2048}
           draggable={false}
+          decoding="async"
+          fetchPriority="high"
           className="sn-fly-img"
         />
       </button>
