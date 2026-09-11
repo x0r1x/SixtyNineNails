@@ -342,31 +342,50 @@ body {
 
 .sn-fly-glow {
   position: absolute;
-  /* extend past the logo so the outer halo is visible */
-  inset: -55%;
+  inset: -58%;
   border-radius: 50%;
   z-index: 0;
   pointer-events: none;
-  /* Hollow center ≈ logo disk; light starts near the red ring and fades out */
-  background: radial-gradient(
-    circle at 50% 50%,
-    transparent 0%,
-    transparent 42%,
-    rgba(122, 31, 43, 0.0) 44%,
-    rgba(255, 70, 110, 0.22) 48%,
-    rgba(200, 40, 80, 0.28) 52%,
-    rgba(255, 230, 235, 0.14) 58%,
-    rgba(122, 31, 43, 0.1) 66%,
-    transparent 78%
-  );
-  filter: blur(10px);
+  /* Hybrid Soft+kiss: hollow core, soft burgundy bloom + thin outer kiss */
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 0%,
+      transparent 41%,
+      rgba(122, 31, 43, 0) 43%,
+      rgba(200, 50, 90, 0.2) 47%,
+      rgba(255, 90, 130, 0.26) 51%,
+      rgba(255, 245, 248, 0.16) 56%,
+      rgba(122, 31, 43, 0.12) 64%,
+      transparent 76%
+    );
+  filter: blur(11px);
   opacity: 0;
   transition: opacity 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 
+/* Thin chromosphere rim — outside the red ring only */
+.sn-fly-glow::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 200, 210, 0.35),
+    0 0 14px 2px rgba(255, 70, 110, 0.35),
+    0 0 28px 6px rgba(122, 31, 43, 0.28);
+  /* punch interior so rim light doesn't fill the logo */
+  -webkit-mask-image: radial-gradient(circle, transparent 62%, #000 66%);
+  mask-image: radial-gradient(circle, transparent 62%, #000 66%);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .sn-fly.is-splash .sn-fly-glow {
   opacity: 1;
-  animation: sn-haze 4.5s ease-in-out infinite;
+  animation:
+    sn-glow-in 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) both,
+    sn-haze 4.2s ease-in-out 0.9s infinite;
 }
 
 .sn-fly.is-header .sn-fly-glow {
@@ -374,15 +393,20 @@ body {
   animation: none;
 }
 
+.sn-fly.is-header .sn-fly-glow::after {
+  opacity: 0;
+  transition: opacity 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
 @keyframes sn-haze {
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.75;
+    opacity: 0.82;
   }
   50% {
-    transform: scale(1.03);
-    opacity: 0.95;
+    transform: scale(1.035);
+    opacity: 1;
   }
 }
 
