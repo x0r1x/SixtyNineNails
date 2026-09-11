@@ -328,6 +328,9 @@ body {
   object-fit: contain;
   pointer-events: none;
   user-select: none;
+  /* Keep raster sharp while parent may scale down to header */
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0);
   transition: filter 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 
