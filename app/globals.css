@@ -345,44 +345,21 @@ body {
 
 .sn-fly-glow {
   position: absolute;
-  /* Fly is now laid out at splash size — tune blur/spread for ~320–560px, not 44px */
-  inset: -42%;
+  /* Match the red ring — light hugs the rim, does not flood the screen */
+  inset: 0.5%;
   border-radius: 50%;
   z-index: 0;
   pointer-events: none;
-  /* Hollow core (no light inside logo). Ring sits ~46% of this larger layer. */
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      transparent 0%,
-      transparent 44%,
-      rgba(122, 31, 43, 0) 45.5%,
-      rgba(255, 70, 110, 0.55) 48%,
-      rgba(200, 40, 80, 0.5) 52%,
-      rgba(255, 230, 235, 0.28) 58%,
-      rgba(122, 31, 43, 0.32) 66%,
-      transparent 78%
-    );
-  filter: blur(28px);
+  background: transparent;
+  /* Outside-only: box-shadow sits outside the circle; logo (z-index 2) covers the face */
+  box-shadow:
+    0 0 0 1px rgba(255, 170, 190, 0.35),
+    0 0 10px 2px rgba(255, 70, 110, 0.55),
+    0 0 22px 5px rgba(200, 40, 80, 0.4),
+    0 0 40px 10px rgba(122, 31, 43, 0.28);
+  filter: none;
   opacity: 0;
   transition: opacity 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-}
-
-/* Chromosphere kiss just outside the red rim */
-.sn-fly-glow::after {
-  content: "";
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 2px rgba(255, 190, 205, 0.45),
-    0 0 22px 4px rgba(255, 60, 100, 0.55),
-    0 0 48px 12px rgba(122, 31, 43, 0.45),
-    0 0 80px 24px rgba(122, 31, 43, 0.22);
-  -webkit-mask-image: radial-gradient(circle, transparent 58%, #000 63%);
-  mask-image: radial-gradient(circle, transparent 58%, #000 63%);
-  opacity: 1;
-  pointer-events: none;
 }
 
 .sn-fly.is-splash .sn-fly-glow {
@@ -392,28 +369,20 @@ body {
     sn-haze 4.2s ease-in-out 0.85s infinite;
 }
 
-.sn-fly.is-splash .sn-fly-glow::after {
-  opacity: 1;
-}
-
 .sn-fly.is-header .sn-fly-glow {
   opacity: 0;
   animation: none;
 }
 
-.sn-fly.is-header .sn-fly-glow::after {
-  opacity: 0;
-  transition: opacity 2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-}
 
 @keyframes sn-haze {
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.82;
+    opacity: 0.88;
   }
   50% {
-    transform: scale(1.035);
+    transform: scale(1.015);
     opacity: 1;
   }
 }
